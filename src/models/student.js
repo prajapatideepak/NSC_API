@@ -2,7 +2,7 @@ require('../database/databaseConn');
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-    id:{
+    student_id:{
         type: Number,
         unique: true,
         required: true,
@@ -21,9 +21,15 @@ const studentSchema = new mongoose.Schema({
         ref: "ContactInfo",
         required: true,
     },
-    reg_date:{
+    adminssion_date:{
         type: Date,
-        require: true
+        default: Date.now,
+    },
+    note:{
+        type: String
+    },
+    reference:{
+        type: String,
     }
 
 });
