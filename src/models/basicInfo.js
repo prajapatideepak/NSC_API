@@ -15,7 +15,7 @@ const basicInfoSchema = new mongoose.Schema({
     },
     dob:{
         type: Date,
-        require: [true, "Please select date of birth"]
+        required: [true, "Please select date of birth"]
     }
 
 });
