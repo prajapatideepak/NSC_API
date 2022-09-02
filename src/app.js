@@ -1,7 +1,7 @@
 const express = require("express");
 
-const feesRouter = require("./src/routes/fees/fees.routes");
-const studentRouter = require("./src/routes/students/student.routes");
+const feesRouter = require("./routes/fees/fees.routes");
+const studentRouter = require("./routes/students/student.routes");
 
 const app = express();
 

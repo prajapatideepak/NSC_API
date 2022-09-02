@@ -4,10 +4,12 @@ const mongoose = require('mongoose');
 const contactInfoSchema = new mongoose.Schema({
     whatsapp_no: {
         type: String,
-        required: [true, "Please enter whatsapp number"]
+        required: [true, "Please enter whatsapp number"],
+        maxLength: [10, "Whatsapp number should be of 10 digits"]
     },
     alternative_no:{
         type: String,
+        maxLength: [10, "Alternate number should be of 10 digits"]
     },
     gender:{
         type: String,
@@ -17,7 +19,7 @@ const contactInfoSchema = new mongoose.Schema({
     },
     address:{
         type: String,
-        require: [true, "Please enter address"]
+        required: [true, "Please enter address"]
     }
 
 });
