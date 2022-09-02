@@ -1,8 +1,10 @@
 const express = require("express");
-const { httpGetAllStudents } = require("./student.controller");
+const { getAllStudents, registerStudent } = require("./student.controller");
 
 const studentRouter = express.Router();
 
-studentRouter.get("/", httpGetAllStudents);
+studentRouter.get("/", getAllStudents);
+
+studentRouter.get("/registerStudent", registerStudent);
 
 module.exports = studentRouter;
