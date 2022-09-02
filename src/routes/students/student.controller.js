@@ -5,10 +5,15 @@ const student = [
   { id: 4, name: "deepak" },
 ];
 
-function httpGetAllStudents(req, res) {
+function getAllStudents(req, res) {
   res.status(200).json(student);
 }
 
+function registerStudent(req, res){
+  
+}
+
 module.exports = {
-  httpGetAllStudents,
+  getAllStudents,
+  registerStudent
 };
