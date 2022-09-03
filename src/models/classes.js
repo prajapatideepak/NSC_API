@@ -29,7 +29,7 @@ const classes = new mongoose.Schema({
     },
     medium_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Medium",
+        ref: "mediums",
         required: true, 
     },
 })

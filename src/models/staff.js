@@ -5,12 +5,12 @@ const mongoose = require("mongoose");
 const staff = new mongoose.Schema({
     basic_info_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'BasicInfo',
+        ref: 'basic_infos',
         required: true,
     },
     contact_info_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'ContactInfo',
+        ref: 'contact_infos',
         required: true,
     },
     joining_date:{

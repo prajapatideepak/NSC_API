@@ -9,9 +9,9 @@ const monthlySalary = new mongoose.Schema({
     },
     salary_receipt_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'SalaryReceipt',
+        ref: 'salary_receipts',
         required: true,
     }
 })
 
-module.exports = mongoose.model('monthly_salary', monthlySalary);
+module.exports = mongoose.model('monthly_salarys', monthlySalary);

@@ -10,12 +10,12 @@ const feesReceipt = new mongoose.Schema({
     },
     admin_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Admin",
+        ref: "admins",
         required: true,
     },
     transaction_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Transaction",
+        ref: "transactions",
         required: true,
     },
     date:{
@@ -24,4 +24,4 @@ const feesReceipt = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('fees_receipt', feesReceipt);
+module.exports = mongoose.model('fees_receipts', feesReceipt);
