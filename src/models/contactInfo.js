@@ -1,4 +1,6 @@
 require('../database/databaseConn');
+const validator = require('validator');
+
 const mongoose = require('mongoose');
 
 const contactInfoSchema = new mongoose.Schema({
@@ -11,11 +13,8 @@ const contactInfoSchema = new mongoose.Schema({
         type: String,
         maxLength: [10, "Alternate number should be of 10 digits"]
     },
-    gender:{
+    email:{
         type: String,
-        requried: [true, "Please enter email"],
-        unique: true,
-        validate: [validator.isEmail, "Please enter valid email"]
     },
     address:{
         type: String,
@@ -24,4 +23,4 @@ const contactInfoSchema = new mongoose.Schema({
 
 });
 
-module.exports = mongoose.model("ContactInfo", contactInfoSchema);
+module.exports = mongoose.model("contact_info", contactInfoSchema);

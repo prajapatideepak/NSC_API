@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const studentSchema = new mongoose.Schema({
     student_id:{
         type: Number,
-        unique: true,
+        unique: [true, 'Please enter unique student id'],
         required: true,
     },
     mother_name:{
@@ -21,7 +21,7 @@ const studentSchema = new mongoose.Schema({
         ref: "ContactInfo",
         required: true,
     },
-    adminssion_date:{
+    admission_date:{
         type: Date,
         default: Date.now,
     },
@@ -34,4 +34,4 @@ const studentSchema = new mongoose.Schema({
 
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.model("students", studentSchema);

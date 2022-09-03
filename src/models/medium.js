@@ -13,4 +13,4 @@ const medium = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Medium', medium);
+module.exports = mongoose.model('mediums', medium);

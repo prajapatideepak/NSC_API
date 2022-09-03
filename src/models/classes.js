@@ -2,7 +2,7 @@ require("../database/databaseConn");
 
 const mongoose = require("mongoose");
 
-const classInfo = new mongoose.Schema({
+const classes = new mongoose.Schema({
     batch_year:{
         type: Date,
         requied: [true, 'Please enter batch year'],
@@ -34,4 +34,4 @@ const classInfo = new mongoose.Schema({
     },
 })
 
-module.exports = mongoose.model('Class', classInfo);
+module.exports = mongoose.model('Classes', classes);

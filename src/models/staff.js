@@ -19,4 +19,4 @@ const staff = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Staff', staff);
+module.exports = mongoose.model('staffs', staff);
