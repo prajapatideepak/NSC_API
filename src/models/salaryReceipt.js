@@ -15,17 +15,17 @@ const salaryReceipt = new mongoose.Schema({
     },
     staff_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Staff",
+        ref: "staffs",
         required: true,
     },
     admin_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Admin",
+        ref: "admins",
         required: true,
     },
     transaction_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Transaction",
+        ref: "transactions",
         required: true,
     },
     date:{
@@ -34,4 +34,4 @@ const salaryReceipt = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('salary_receipt', salaryReceipt);
+module.exports = mongoose.model('salary_receipts', salaryReceipt);

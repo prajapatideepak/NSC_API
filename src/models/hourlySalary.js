@@ -17,9 +17,9 @@ const hourlySalary = new mongoose.Schema({
     },
     salary_receipt_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'SalaryReceipt',
+        ref: 'salary_receipt',
         required: true,
     }
 })
 
-module.exports = mongoose.model('hourly_salary', hourlySalary);
+module.exports = mongoose.model('hourly_salarys', hourlySalary);

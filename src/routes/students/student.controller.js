@@ -7,15 +7,17 @@ const Admin = require('../../models/admin');
 const Classes = require('../../models/classes');
 const Medium = require('../../models/medium');
 
-const student = [
-  { id: 1, name: "Sadik" },
-  { id: 2, name: "Shad" },
-  { id: 3, name: "monu" },
-  { id: 4, name: "deepak" },
-];
-
 function getAllStudents(req, res) {
-  res.status(200).json(student);
+  try{
+    Student.find() 
+    .populate("basic_info_id","")
+    .populate("contact_info_id","")
+    .then(stud =>{
+      res.status(200).json(stud);
+    })
+  } catch(error){
+    res.status(500).json(error, error.message);
+  }
 }
 
 async function registerStudent(req, res){
@@ -74,7 +76,7 @@ async function registerStudent(req, res){
     res.status(201).json('Student Registration Successfull');
   } catch(error){
     //500 = internal server error
-    res.status(500).json(error+" "+error.message);
+    res.status(500).json(error.message);
   }
 }
 
