@@ -22,4 +22,4 @@ const hourlySalary = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('HourlySalary', hourlySalary);
+module.exports = mongoose.model('hourly_salary', hourlySalary);

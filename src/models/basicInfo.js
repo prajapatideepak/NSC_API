@@ -5,7 +5,7 @@ const basicInfoSchema = new mongoose.Schema({
     photo: {
         type: String,
     },
-    name:{
+    full_name:{
         type: String,
         required: [true, "Please enter name"],
     },
@@ -20,4 +20,4 @@ const basicInfoSchema = new mongoose.Schema({
 
 });
 
-module.exports = mongoose.model("BasicInfo", basicInfoSchema);
+module.exports = mongoose.model("basic_info", basicInfoSchema);
