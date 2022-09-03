@@ -24,4 +24,4 @@ const feesReceipt = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('FeesReceipt', feesReceipt);
+module.exports = mongoose.model('fees_receipt', feesReceipt);

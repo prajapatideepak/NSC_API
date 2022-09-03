@@ -14,4 +14,4 @@ const monthlySalary = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('MonthlySalary', monthlySalary);
+module.exports = mongoose.model('monthly_salary', monthlySalary);

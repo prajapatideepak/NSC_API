@@ -34,4 +34,4 @@ const salaryReceipt = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('SalaryReceipt', salaryReceipt);
+module.exports = mongoose.model('salary_receipt', salaryReceipt);
