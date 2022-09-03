@@ -17,7 +17,7 @@ const hourlySalary = new mongoose.Schema({
     },
     salary_receipt_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'salary_receipt',
+        ref: 'salary_receipts',
         required: true,
     }
 })
