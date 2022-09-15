@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const fees = new mongoose.Schema({
     total_fees:{
-        type: String,
+        type: Number,
         required: [true, 'Please enter total fees']
     },
     discount:{
@@ -11,7 +11,7 @@ const fees = new mongoose.Schema({
         default: 0
     },
     net_fees:{
-        type: String,
+        type: Number,
         required:[true, 'Please enter net fees']
     },
     pending_amount:{

@@ -4,10 +4,10 @@ const mongoose = require("mongoose");
 
 const classes = new mongoose.Schema({
     batch_year:{
-        type: Date,
+        type: String,
         requied: [true, 'Please enter batch year'],
     },
-    standard:{
+    class_name:{
         type: String,
         required: [true, 'Please select standard'],
     },
@@ -27,11 +27,10 @@ const classes = new mongoose.Schema({
         type: String,
         required: [true, 'Please select stream'],
     },
-    medium_id:{
-        type: mongoose.Schema.ObjectId,
-        ref: "mediums",
-        required: true, 
-    },
+    medium:{
+        type: String,
+        required: [true, 'Please enter medium'],
+    }
 })
 
-module.exports = mongoose.model('Classes', classes);
+module.exports = mongoose.model('classes', classes);

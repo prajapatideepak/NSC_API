@@ -16,6 +16,10 @@ const staff = new mongoose.Schema({
     joining_date:{
         type: Date,
         required: [true, 'Please enter joining date'],
+    },
+    is_cancelled:{
+        type: Number,
+        default: 0
     }
 })
 

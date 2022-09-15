@@ -1,8 +1,8 @@
 const express = require("express");
-const { httpGetFeesData } = require("./fees.controller");
+const { getPendingStudentFees } = require("./fees.controller");
 
 const feesRouter = express.Router();
 
-feesRouter.get("/", httpGetFeesData);
+feesRouter.get("/pending", getPendingStudentFees);
 
 module.exports = feesRouter;

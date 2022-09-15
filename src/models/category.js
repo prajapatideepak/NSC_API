@@ -2,8 +2,8 @@ require("../database/databaseConn");
 
 const mongoose = require("mongoose");
 
-const medium = new mongoose.Schema({
-    medium_name:{
+const category = new mongoose.Schema({
+    category_name:{
         type: String,
         required: true,
     },
@@ -13,4 +13,4 @@ const medium = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('mediums', medium);
+module.exports = mongoose.model('categorys', category);
