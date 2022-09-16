@@ -1,4 +1,5 @@
 require("../database/databaseConn");
+const bcrypt = require("bcrypt");
 
 const mongoose = require("mongoose");
 
@@ -33,4 +34,7 @@ const admin = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('admins', admin);
+admin.methods.checkPassoword = async function (password) {
+  console.log(password);
+};
+module.exports = mongoose.model("admins", admin);
