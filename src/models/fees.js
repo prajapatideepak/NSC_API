@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const fees = new mongoose.Schema({
     total_fees:{
-        type: String,
+        type: Number,
         required: [true, 'Please enter total fees']
     },
     discount:{
@@ -11,7 +11,7 @@ const fees = new mongoose.Schema({
         default: 0
     },
     net_fees:{
-        type: String,
+        type: Number,
         required:[true, 'Please enter net fees']
     },
     pending_amount:{
@@ -24,10 +24,11 @@ const fees = new mongoose.Schema({
     }
 })
 
-fees.virtual("receipt",{
-    ref:"feesReceipt",
-    localField:"_id",
-    foreignField:""
-})
+fees.virtual("fees_receipt_virtual", {
+  ref: "fees_receipts",
+  localField: "_id",
+  foreignField: "fees_id",
+  justOne: false,
+});
 
 module.exports = mongoose.model('fees', fees);

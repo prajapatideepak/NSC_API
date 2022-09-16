@@ -17,7 +17,6 @@ const basicInfoSchema = new mongoose.Schema({
         type: Date,
         required: [true, "Please select date of birth"]
     }
-
 });
 
 module.exports = mongoose.model("basic_infos", basicInfoSchema);
