@@ -24,4 +24,10 @@ const fees = new mongoose.Schema({
     }
 })
 
+fees.virtual("receipt",{
+    ref:"feesReceipt",
+    localField:"_id",
+    foreignField:""
+})
+
 module.exports = mongoose.model('fees', fees);

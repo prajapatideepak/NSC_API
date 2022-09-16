@@ -12,7 +12,7 @@ const staff = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'contact_infos',
         required: true,
-    },
+    },  
     joining_date:{
         type: Date,
         required: [true, 'Please enter joining date'],

@@ -3,6 +3,6 @@ const { httpGetFeesData } = require("./fees.controller");
 
 const feesRouter = express.Router();
 
-feesRouter.get("/", httpGetFeesData);
+feesRouter.get("/:search", httpGetFeesData);
 
 module.exports = feesRouter;
