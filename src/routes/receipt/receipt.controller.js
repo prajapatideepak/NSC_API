@@ -16,7 +16,7 @@ const Transaction = require('../../models/transaction');
 //-------------------------------------------------------------
 async function generateStudentReceipt(req, res) {
     try{
-        const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount} = req.body;
+        const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount} = req.body;
 
         const student_details = await Student.findOne({student_id});
 
@@ -40,11 +40,13 @@ async function generateStudentReceipt(req, res) {
         })
         .limit(1);
 
+        const net_amount = amount - discount;
+
         const transaction_details = await Transaction.create({
             is_by_cash,
             is_by_cheque,
             is_by_upi,
-            amount
+            amount: net_amount,
         })
 
         const receipts = await FeesReceipt.find();
@@ -54,7 +56,8 @@ async function generateStudentReceipt(req, res) {
             fees_receipt_id,
             fees_id: academic_details.fees_id,
             admin_id,
-            transaction_id: transaction_details._id
+            transaction_id: transaction_details._id,
+            discount
         })
 
         //updating pending amount of student in fees table
@@ -139,15 +142,46 @@ async function generateStaffReceipt(req, res) {
 }
 
 //-------------------------------------------------------------
-//-------------------- UPDATE STAFF RECEIPT -------------------
+//-------------------- UPDATE STUDENT RECEIPT -------------------
 //-------------------------------------------------------------
+async function updateStudentReceipt(req, res){
+    try{
+        
+        res.status(200).json({
+            success: true,
+            message: 'Receipt Updated successfully',
+        })
+    }
+    catch(error){
+        res.status(404).json({
+            success: false,
+            message: error.message,
+        })
+    }
+}
 
 //-------------------------------------------------------------
-//------------------ UPDATE STUDENT RECEIPT -------------------
+//------------------ UPDATE STAFF RECEIPT -------------------
 //-------------------------------------------------------------
+async function updateStaffReceipt(req, res){
+    try{
 
+        res.status(200).json({
+            success: true,
+            message: 'Receipt Updated successfully',
+        })
+    }
+    catch(error){
+        res.status(404).json({
+            success: false,
+            message: error.message,
+        })
+    }
+}
 
 module.exports = {
     generateStudentReceipt,
-    generateStaffReceipt
+    generateStaffReceipt,
+    updateStudentReceipt,
+    updateStaffReceipt
 }

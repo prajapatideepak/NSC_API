@@ -19,9 +19,13 @@ const admin = new mongoose.Schema({
         required: true,
     },
     is_super_admin:{
-        type: Boolean,
+        type: Number,
         required: true,
         default: 0,
+    },
+    security_pin:{
+        type: Number,
+        required: [true, 'Please enter security pin'],
     },
     date:{
         type: Date,
