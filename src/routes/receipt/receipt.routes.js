@@ -1,11 +1,12 @@
 const express = require("express");
-const {generateStudentReceipt, generateStaffReceipt, updateStudentReceipt, updateStaffReceipt} = require('./receipt.controller');
+const {generateStudentReceipt, generateStaffReceipt, updateStudentReceipt, updateStaffReceipt, searchReceipt} = require('./receipt.controller');
 
 receiptRouter = express.Router();
 
 receiptRouter.post('/generate/student', generateStudentReceipt);
 receiptRouter.post('/generate/staff', generateStaffReceipt);
 receiptRouter.put('/update/student/:fees_receipt_id', updateStudentReceipt);
-receiptRouter.put('/update/staff/:staff_id', updateStaffReceipt);
+receiptRouter.put('/update/staff/:salary_receipt_id', updateStaffReceipt);
+receiptRouter.put('/search/:value', searchReceipt);
 
 module.exports = receiptRouter;

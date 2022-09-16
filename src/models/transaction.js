@@ -27,7 +27,7 @@ const transaction = new mongoose.Schema({
         default: -1,
     },
     amount:{
-        type: String,
+        type: Number,
         required: [true, 'Please enter amount']
     },
     date:{

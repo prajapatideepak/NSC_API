@@ -11,7 +11,6 @@ const salaryReceipt = new mongoose.Schema({
     is_hourly:{
         type: Number,
         required: true,
-        default: 0
     },
     staff_id:{
         type: mongoose.Schema.ObjectId,

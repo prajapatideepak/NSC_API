@@ -24,7 +24,7 @@ const admin = new mongoose.Schema({
         default: 0,
     },
     security_pin:{
-        type: Number,
+        type: String,
         required: [true, 'Please enter security pin'],
     },
     date:{
