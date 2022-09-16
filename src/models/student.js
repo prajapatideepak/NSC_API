@@ -38,4 +38,11 @@ const studentSchema = new mongoose.Schema({
 
 });
 
+studentSchema.virtual("academic_virtual", {
+  ref: "academics",
+  localField: "_id",
+  foreignField: "student_id",
+  justOne: false,
+});
+
 module.exports = mongoose.model("students", studentSchema);
