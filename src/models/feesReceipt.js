@@ -8,6 +8,11 @@ const feesReceipt = new mongoose.Schema({
         unique: true,
         required: true,
     },
+    fees_id:{
+        type: mongoose.Schema.ObjectId,
+        ref: "fees",
+        required: true,
+    },
     admin_id:{
         type: mongoose.Schema.ObjectId,
         ref: "admins",
@@ -17,6 +22,10 @@ const feesReceipt = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: "transactions",
         required: true,
+    },
+    discount:{
+        type: Number,
+        default: 0,
     },
     date:{
         type: Date,
