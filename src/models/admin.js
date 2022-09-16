@@ -15,7 +15,7 @@ const admin = new mongoose.Schema({
     },
     staff_id:{
         type: mongoose.Schema.ObjectId,
-        ref: 'Staff',
+        ref: 'staffs',
         required: true,
     },
     is_super_admin:{
@@ -29,4 +29,4 @@ const admin = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Admin', admin);
+module.exports = mongoose.model('admins', admin);

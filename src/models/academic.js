@@ -8,17 +8,17 @@ const academic = new mongoose.Schema({
     },
     class_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Class",
+        ref: "classes",
         required: true
     },
     student_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Student",
+        ref: "students",
         required: true,
     },
     fees_id:{
         type: mongoose.Schema.ObjectId,
-        ref: "Fee",
+        ref: "fees",
         required: true,
     },
     date:{
@@ -27,4 +27,4 @@ const academic = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Academic', academic);
+module.exports = mongoose.model('academics', academic);

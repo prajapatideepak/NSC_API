@@ -20,4 +20,4 @@ const basicInfoSchema = new mongoose.Schema({
 
 });
 
-module.exports = mongoose.model("basic_info", basicInfoSchema);
+module.exports = mongoose.model("basic_infos", basicInfoSchema);
