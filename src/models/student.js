@@ -30,8 +30,19 @@ const studentSchema = new mongoose.Schema({
     },
     reference:{
         type: String,
+    },
+    is_cancelled:{
+        type: Number,
+        default: 0
     }
 
+});
+
+studentSchema.virtual("academic_virtual", {
+  ref: "academics",
+  localField: "_id",
+  foreignField: "student_id",
+  justOne: false,
 });
 
 module.exports = mongoose.model("students", studentSchema);

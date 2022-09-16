@@ -3,13 +3,17 @@ require("../database/databaseConn");
 const mongoose = require("mongoose");
 
 const classes = new mongoose.Schema({
-    batch_year:{
-        type: Date,
-        requied: [true, 'Please enter batch year'],
-    },
-    standard:{
+    batch_start_year:{
         type: String,
-        required: [true, 'Please select standard'],
+        requied: [true, 'Please enter batch start year'],
+    },
+    batch_end_year:{
+        type: String,
+        requied: [true, 'Please enter batch end year'],
+    },
+    class_name:{
+        type: String,
+        required: [true, 'Please enter class_name'],
     },
     total_student:{
         type: Number,
@@ -23,15 +27,23 @@ const classes = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    is_active:{
+        type: Number,
+        required: true,
+        default: 1
+    },
     stream:{
         type: String,
         required: [true, 'Please select stream'],
     },
-    medium_id:{
-        type: mongoose.Schema.ObjectId,
-        ref: "mediums",
-        required: true, 
+    medium:{
+        type: String,
+        required: [true, 'Please enter medium'],
     },
+    date:{
+        type: Date,
+        default: Date.now()
+    }
 })
 
-module.exports = mongoose.model('Classes', classes);
+module.exports = mongoose.model('classes', classes);

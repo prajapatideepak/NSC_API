@@ -3,11 +3,6 @@ require("../database/databaseConn");
 const mongoose = require("mongoose");
 
 const transaction = new mongoose.Schema({
-    is_paid:{
-        type: Number,
-        required: true,
-        default: 0
-    },
     is_by_cheque:{
         type: Number,
         required: true,
@@ -30,6 +25,10 @@ const transaction = new mongoose.Schema({
     upi_no:{
         type: String,
         default: -1,
+    },
+    amount:{
+        type: String,
+        required: [true, 'Please enter amount']
     },
     date:{
         type: Date,
