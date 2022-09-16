@@ -74,8 +74,8 @@ async function registerStudent(req, res){
 
     const fees = await Fees.create({
       discount,
-      net_fees,
-      pending_amount: net
+      net_fees: net_fees,
+      pending_amount: net_fees
     });
     
     //START => Updating total student in class
