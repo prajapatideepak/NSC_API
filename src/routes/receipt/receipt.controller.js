@@ -285,9 +285,200 @@ async function updateStaffReceipt(req, res){
 //-----------------------------------------------------------------------------------
 async function searchReceipt(req, res){
     try{
-        const receipt_params = req.params.value;
+        let receipt_params = req.params.value;
+        let student_receipts = [];
+        let staff_receipts = [];
 
-        
+        // Getting student details for student receipt
+        let student_data = await Student.aggregate([
+            {$match:{is_cancelled: 0}},
+            {
+                $lookup:{
+                    from: "basic_infos",
+                    localField: "basic_info_id",
+                    foreignField: "_id",
+                    as: "basic_info"
+                }
+            },
+            {
+                $lookup:{
+                    from: "contact_infos",
+                    localField: "contact_info_id",
+                    foreignField: "_id",
+                    as: "contact_info"
+                },
+            },
+            {
+                $lookup:{
+                    from: "academics",
+                    localField: "_id",
+                    foreignField: "student_id",
+                    as: "academics",
+                    let:{class_id: 'class_id'},
+                    pipeline:[
+                        { $limit: 1 },
+                        {
+                            $lookup:{
+                                from: "classes",
+                                localField: "class_id",
+                                foreignField: "_id",
+                                as: "class",
+                                pipeline:[
+                                    {
+                                        $match: {
+                                            is_active: 1,
+                                            // $expr:{
+                                            // }
+                                        }
+                                    }
+                                ]
+                            },
+                        },
+                        {
+                            $lookup:{
+                                from: "fees",
+                                localField: "fees_id",
+                                foreignField: "_id",
+                                as: "fees",
+                                pipeline:[
+                                    {
+                                        $lookup:{
+                                            from: "fees_receipts",
+                                            localField: "_id",
+                                            foreignField: "fees_id",
+                                            as: "fees_receipt"
+                                        } 
+                                    }
+                                ]
+                            }
+                            
+                        }
+                    ]
+                },
+            }
+        ]);
+
+        student_receipts = student_data.filter( function (item) {
+            const student_full_name = item.basic_info[0].full_name.toLowerCase();
+            let isStudentNameFound = false;
+
+            if(isNaN(receipt_params)){
+                receipt_params = receipt_params.toLowerCase();
+            }
+
+            if (student_full_name.indexOf(receipt_params) > -1){
+                isStudentNameFound = true;
+            }
+            let isReceiptFound = false
+            //Finding receipts from receipt_id
+            if(item.academics[0].fees[0].fees_receipt[0]){
+                item.academics[0].fees[0].fees_receipt.forEach((item)=>{
+                    if(item.fees_receipt_id == receipt_params){
+                        isReceiptFound = true;
+                    }
+                })
+
+            }
+
+            return item.student_id == receipt_params || isStudentNameFound || item.contact_info[0].whatsapp_no == receipt_params || isReceiptFound;
+
+        });
+
+        // Getting staff details for staff receipt
+        let staff_data = await Staff.aggregate([
+            {$match:{is_cancelled: 0}},
+            {
+                $lookup:{
+                    from: "basic_infos",
+                    localField: "basic_info_id",
+                    foreignField: "_id",
+                    as: "basic_info"
+                }
+            },
+            {
+                $lookup:{
+                    from: "contact_infos",
+                    localField: "contact_info_id",
+                    foreignField: "_id",
+                    as: "contact_info"
+                },
+            },
+            {
+                $lookup:{
+                    from: "salary_receipts",
+                    localField: "_id",
+                    foreignField: "staff_id",
+                    as: "salary_receipt",
+                    let:{class_id: 'class_id'},
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from: "transactions",
+                                localField: "transaction_id",
+                                foreignField: "_id",
+                                as: "transaction"
+                            },
+                        },
+                        {
+                            $lookup:{
+                                from: "hourly_salarys",
+                                localField: "_id",
+                                foreignField: "salary_receipt_id",
+                                as: "hourly_salary",
+                            }
+                        },
+                        {
+                            $lookup:{
+                                from: "monthly_salarys",
+                                localField: "_id",
+                                foreignField: "salar_receipt_id",
+                                as: "monthly_salary",
+                            }
+                        }
+                    ]
+                },
+            }
+        ]);
+
+        staff_receipts = staff_data.filter( function (item) {
+            const staff_full_name = item.basic_info[0].full_name.toLowerCase();
+            let isStaffNameFound = false;
+
+            if(isNaN(receipt_params)){
+                receipt_params = receipt_params.toLowerCase();
+            }
+
+            if (staff_full_name.indexOf(receipt_params) > -1){
+                isStaffNameFound = true;
+            }
+            let isReceiptFound = false
+            //Finding receipts from receipt_id
+            if(item.salary_receipt[0]){
+                item.salary_receipt.forEach((item)=>{
+                    if(item.salary_receipt_id == receipt_params){
+                        isReceiptFound = true;
+                    }
+                })
+
+            }
+
+            return isStaffNameFound || item.contact_info[0].whatsapp_no == receipt_params || isReceiptFound;
+
+        });
+
+        if(!staff_data[0] && !student_data[0]){
+            return res.status(200).json({ 
+                success: false,
+                message:'No Receipt found'
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            student_receipts,
+            staff_receipts
+        });
+
     }
     catch(error){
         res.status(404).json({
