@@ -19,5 +19,8 @@
     "mongoose": "^6.5.4",
     "nodemon": "^2.0.19",
     "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "bcrypt": "^5.0.1"
   }
 }
