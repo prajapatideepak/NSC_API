@@ -4,6 +4,7 @@ const adminRouter = require("./routes/admin/admin.routes");
 const feesRouter = require("./routes/fees/fees.routes");
 const studentRouter = require("./routes/students/student.routes");
 const receiptRouter = require("./routes/receipt/receipt.routes");
+const reportRouter = require("./routes/report/report.route");
 
 const app = express();
 
@@ -13,10 +14,7 @@ app.use("/students", studentRouter);
 app.use("/fees", feesRouter);
 app.use("/admin", adminRouter);
 
-<<<<<<< HEAD
-app.use("/admin", adminRouter);
-=======
 app.use("/receipt", receiptRouter);
+app.use("/report", reportRouter);
 
->>>>>>> origin/master
 module.exports = app;

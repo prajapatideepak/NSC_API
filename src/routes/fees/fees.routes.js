@@ -5,7 +5,7 @@ const feesRouter = express.Router();
 
 feesRouter.get("/pending", getAllPendingStudentsFees);
 
-// feesRouter.get("/student/:student_id", getStudentFeesDetails);
+//feesRouter.get("/student/:student_id", getStudentFeesDetails);
 
 feesRouter.get("/student-history", studentFessHistory);
 
