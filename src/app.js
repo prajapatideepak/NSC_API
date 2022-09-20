@@ -1,6 +1,7 @@
 const express = require("express");
 const adminRouter = require("./routes/admin/admin.routes");
-
+const facultyRouter = require("./routes/faculty/faculty.routes");
+const SalaryRouter = require("./routes/Salary/salary.routes");
 const feesRouter = require("./routes/fees/fees.routes");
 const studentRouter = require("./routes/students/student.routes");
 const receiptRouter = require("./routes/receipt/receipt.routes");
@@ -16,5 +17,8 @@ app.use("/admin", adminRouter);
 
 app.use("/receipt", receiptRouter);
 app.use("/report", reportRouter);
+
+app.use("/faculty", facultyRouter);
+app.use("/salary", SalaryRouter);
 
 module.exports = app;
