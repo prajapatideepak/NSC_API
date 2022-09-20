@@ -22,3 +22,4 @@ app.use("/faculty", facultyRouter);
 app.use("/salary", SalaryRouter);
 
 module.exports = app;
+    
