@@ -6,8 +6,15 @@ const feesRouter = require("./routes/fees/fees.routes");
 const studentRouter = require("./routes/students/student.routes");
 const receiptRouter = require("./routes/receipt/receipt.routes");
 const reportRouter = require("./routes/report/report.route");
+const cors = require("cors");
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
 
 app.use(express.json());
 

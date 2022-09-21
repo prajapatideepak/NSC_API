@@ -23,6 +23,7 @@
     "whatsapp-web.js": "^1.17.1"
   },
   "devDependencies": {
-    "bcrypt": "^5.0.1"
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5"
   }
 }
