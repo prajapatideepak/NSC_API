@@ -327,8 +327,6 @@ async function searchReceipt(req, res){
                                     {
                                         $match: {
                                             is_active: 1,
-                                            // $expr:{
-                                            // }
                                         }
                                     }
                                 ]
