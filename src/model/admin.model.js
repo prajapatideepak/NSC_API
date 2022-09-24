@@ -30,6 +30,7 @@ async function insertAdmin(body) {
     password: body.password,
     staff_id: staff_info_id._id,
     is_super_admin: body.is_super_admin,
+    security_pin: body.security_pin,
   });
 
   return adminData;
@@ -47,7 +48,7 @@ async function getAdminByUsername(u) {
 
 async function updateAdminById(_id, data) {
   const result = await admin.findOneAndUpdate({ id: _id }, data);
-  
+
   return result;
 }
 

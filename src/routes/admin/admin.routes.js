@@ -7,7 +7,7 @@ const {
 } = require("./admin.controller");
 
 const adminRouter = express.Router();
-
+  
 
 adminRouter.put("/", httpUpdateAdmin);
 adminRouter.post("/", httpInsertAdmin);

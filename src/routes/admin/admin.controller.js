@@ -9,6 +9,7 @@ const { GenrateToken } = require("../../middlewares/auth");
 const admin = require("../../models/admin");
 
 async function httpInsertAdmin(req, res) {
+  console.log(req.body);
   const admin = req.body;
 
   if (
@@ -16,10 +17,12 @@ async function httpInsertAdmin(req, res) {
     !admin.username ||
     !admin.password ||
     !admin.email ||
-    !admin.whatsapp_no
+    !admin.whatsapp_no ||
+    !admin.security_pin
   ) {
     return res.status(400).json({
-      messsage: "Missing Student Property",
+      ok: false,
+      error: "Missing Student Property",
     });
   }
 
@@ -30,9 +33,10 @@ async function httpInsertAdmin(req, res) {
 
     const basic = await insertAdmin(admin);
 
-    return res.status(201).json(basic);
+    return res.status(201).json({ ok: true, data: basic });
   } catch (error) {
     return res.status(500).json({
+      ok: false,
       error: error.message,
     });
   }
@@ -45,14 +49,22 @@ async function httpGetadmin(req, res) {
   try {
     const admin = await getAdminByid(id);
 
-    res.status(200).json(admin);
-  } catch (error) {}
+    res.status(200).json({
+      ok: false,
+      data: admin,
+    });
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: error,
+    });
+  }
 }
 
 async function httpLoginRequest(req, res) {
   const loginData = req.body;
   if (!loginData.username || !loginData.password) {
-    return res.status(400).json({ message: "Please Enter Value" });
+    return res.status(400).json({ ok: false, error: "Please Enter Value" });
   }
 
   try {
@@ -60,18 +72,18 @@ async function httpLoginRequest(req, res) {
 
     if (!adminData) {
       return res.status(400).json({
+        ok: false,
         error: "User Not found",
       });
     }
 
-  
     if (await bcrypt.compare(loginData.password, adminData.password)) {
-      return res.status(200).json({ success: "Login succesfully" });
+      return res.status(200).json({ ok: true, success: "Login succesfully" });
     } else {
-      return res.status(400).json({ Error: "Incorrect Password" });
+      return res.status(400).json({ ok: false, error: "Incorrect Password" });
     }
   } catch (error) {
-    return res.json({ error: `${error}` });
+    return res.json({ ok: false, error: `${error}` });
   }
 }
 
@@ -81,13 +93,14 @@ async function httpUpdateAdmin(req, res) {
   console.log(data);
   if (!_id) {
     return res.status(400).json({
-      message: "Enter Valid Data",
+      ok: false,
+      false: "Enter Valid Data",
     });
   }
   try {
     const result = await updateAdminById(_id, data);
     res.status(200).json({
-      success: true,
+      ok: true,
       data: result,
     });
   } catch (e) {
