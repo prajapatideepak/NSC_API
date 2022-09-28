@@ -1,22 +1,15 @@
 const { config } = require("dotenv");
 const jwt = require("jsonwebtoken");
 
-function GenrateToken(admin) {
-  return jwt.sign({ id: admin.id }, "learneverything", {
-    expiresIn: "100d",
-  });
+const JWTSign = process.env.JWT_SIGN;
+
+async function createToken(userID) {
+  try {
+    const token = jwt.sign({ userID }, JWTSign);
+    return token;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-function VerifyToken(token) {
-  new Promise((resolve, reject) => {
-    jwt.verify(token, config.secrets.jwt, (err, payload) => {
-      if (err) return reject(err);
-      resolve(payload);
-    });
-  });
-}
-
-module.exports = {
-  GenrateToken,
-  VerifyToken,
-};
+module.exports = { createToken };

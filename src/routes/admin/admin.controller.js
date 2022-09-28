@@ -5,7 +5,7 @@ const {
   getAdminByid,
 } = require("../../model/admin.model");
 const bcrypt = require("bcrypt");
-const { GenrateToken } = require("../../middlewares/auth");
+const { GenrateToken, createToken } = require("../../middlewares/auth");
 const admin = require("../../models/admin");
 
 async function httpInsertAdmin(req, res) {
@@ -75,10 +75,13 @@ async function httpLoginRequest(req, res) {
         ok: false,
         error: "User Not found",
       });
-    }
+    }  
 
     if (await bcrypt.compare(loginData.password, adminData.password)) {
-      return res.status(200).json({ ok: true, success: "Login succesfully" });
+      const token = await createToken(loginData.username);
+      return res
+        .status(200)
+        .json({ ok: true, success: "Login succesfully", token: token });
     } else {
       return res.status(400).json({ ok: false, error: "Incorrect Password" });
     }
