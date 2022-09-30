@@ -58,9 +58,17 @@ async function getAdminByid(id) {
   return adminData;
 }
 
+async function getAdminByUser(u) {
+  const adminData = await admin.findOne({ username: u }).exec();
+
+  console.log(adminData);
+  return adminData;
+}
+
 module.exports = {
   insertAdmin,
   getAdminByUsername,
   updateAdminById,
+  getAdminByUser,
   getAdminByid,
 };

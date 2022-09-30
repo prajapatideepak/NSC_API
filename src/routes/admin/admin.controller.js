@@ -3,9 +3,14 @@ const {
   getAdminByUsername,
   updateAdminById,
   getAdminByid,
+  getAdminByUser,
 } = require("../../model/admin.model");
 const bcrypt = require("bcrypt");
-const { GenrateToken, createToken } = require("../../middlewares/auth");
+const {
+  GenrateToken,
+  createToken,
+  verifyToken,
+} = require("../../middlewares/auth");
 const admin = require("../../models/admin");
 
 async function httpInsertAdmin(req, res) {
@@ -43,16 +48,23 @@ async function httpInsertAdmin(req, res) {
 }
 
 async function httpGetadmin(req, res) {
-  const id = req.params.id;
+  const token = req.headers.authorization;
 
-  console.log(req.params.id);
   try {
-    const admin = await getAdminByid(id);
+    const username = verifyToken(token);
+    const admin = await getAdminByUser(username);
 
-    res.status(200).json({
-      ok: false,
-      data: admin,
-    });
+    if (admin) {
+      res.status(200).json({
+        ok: true,
+        data: admin,
+      });
+    } else {
+      res.status(400).json({
+        ok: false,
+        error: "User Not Found",
+      });
+    }
   } catch (error) {
     res.status(500).json({
       ok: false,
@@ -75,7 +87,7 @@ async function httpLoginRequest(req, res) {
         ok: false,
         error: "User Not found",
       });
-    }  
+    }
 
     if (await bcrypt.compare(loginData.password, adminData.password)) {
       const token = await createToken(loginData.username);
