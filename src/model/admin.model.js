@@ -2,6 +2,7 @@ const admin = require("../models/admin");
 const staff = require("../models/staff");
 const BasicInfo = require("../models/basicInfo");
 const ContactInfo = require("../models/contactInfo");
+const { populate } = require("../models/admin");
 
 async function insertAdmin(body) {
   console.log(body);
@@ -59,7 +60,13 @@ async function getAdminByid(id) {
 }
 
 async function getAdminByUser(u) {
-  const adminData = await admin.findOne({ username: u }).exec();
+  const adminData = await admin
+    .findOne({ username: u })
+    .populate({
+      path: "staff_id",
+      populate: ["basic_info_id", "contact_info_id"],
+    })
+    .exec();  
 
   console.log(adminData);
   return adminData;

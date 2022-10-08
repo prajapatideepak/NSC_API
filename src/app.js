@@ -7,7 +7,6 @@ const studentRouter = require("./routes/students/student.routes");
 const receiptRouter = require("./routes/receipt/receipt.routes");
 const reportRouter = require("./routes/report/report.route");
 const cors = require("cors");
-const { checkToken } = require("./middlewares/auth");
 
 const app = express();
 
@@ -16,8 +15,6 @@ app.use(
     origin: "http://localhost:3000",
   })
 );
-
-app.use(checkToken);
 
 app.use(express.json());
 app.use(function (req, res, next) {

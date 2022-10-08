@@ -24,8 +24,7 @@ client.on("ready", async () => {
   console.log("Client is ready!");
   const chat = await client.getChats();
 
-  // client.sendMessage("917228948457@c.us", "Hello  Your Whatsapp is Hacked");
-  
+    client.sendMessage("916352201170@c.us", "Hello  Your Whatsapp is Hacked");
 
   console.log(chat[0]);
 });

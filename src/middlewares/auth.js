@@ -14,35 +14,36 @@ async function createToken(userID) {
 }
 
 async function verifyToken(token) {
-  const decodeUsername = jwt.verify(token, JWTSign);
+  const decodeUsername = await jwt.verify(token, JWTSign);
   return decodeUsername;
 }
 
 async function checkToken(req, res, next) {
-  const token = req?.headers?.authorization;
-  if (!token) {
-    return res.status(400).json({
-      ok: false,
-      error: "authentic User",
-    });
-  }
+  // const token = req?.headers?.authorization;
+  // if (!token) {
+  //   return res.status(400).json({
+  //     ok: false,
+  //     error: "authentic User",
+  //   });
+  // }
 
-  try {
-    const username = await verifyToken(token);
+  // try {
+  //   const username = await verifyToken(token);
 
-    const admin = await getAdminByUser(username.userID);
+  //   const admin = await getAdminByUser(username.userID);
 
-    if (admin) {
-      next();
-    } else {
-      res.status(400).json({
-        ok: false,
-        error: "invalid username",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({ ok: false, error: error });
-  }
+  //   if (admin) {
+  //     next();
+  //   } else {
+  //     res.status(400).json({
+  //       ok:  ,
+  //       error: "invalid username",
+  //     });
+  //   }
+  // } catch (error) {
+  //   return res.status(500).json({ ok: false, error: error });
+  // }
+  next();
 }
 
 module.exports = { createToken, checkToken, verifyToken };

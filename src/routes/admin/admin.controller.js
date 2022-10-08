@@ -51,8 +51,9 @@ async function httpGetadmin(req, res) {
   const token = req.headers.authorization;
 
   try {
-    const username = verifyToken(token);
-    const admin = await getAdminByUser(username);
+    const username = await verifyToken(token);
+    console.log(username.userID);
+    const admin = await getAdminByUser(username.userID);
 
     if (admin) {
       res.status(200).json({
