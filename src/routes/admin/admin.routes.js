@@ -1,0 +1,18 @@
+const express = require("express");
+const {
+  httpInsertAdmin,
+  httpLoginRequest,
+  httpUpdateAdmin,
+  httpGetadmin,
+} = require("./admin.controller");
+
+const adminRouter = express.Router();
+
+
+adminRouter.put("/", httpUpdateAdmin);
+adminRouter.post("/", httpInsertAdmin);
+adminRouter.get("/:id", httpGetadmin);
+  
+adminRouter.post("/login", httpLoginRequest);
+// adminRouter.put("/",())
+module.exports = adminRouter;

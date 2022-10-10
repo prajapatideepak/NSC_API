@@ -2,10 +2,6 @@ require("../database/databaseConn");
 const mongoose = require('mongoose');
 
 const fees = new mongoose.Schema({
-    total_fees:{
-        type: Number,
-        required: [true, 'Please enter total fees']
-    },
     discount:{
         type: Number,
         default: 0

@@ -1,65 +1,61 @@
-const Student = require('../../models/student');
-const BasicInfo = require('../../models/basicInfo');
-const ContactInfo = require('../../models/contactInfo');
-const Fees = require('../../models/fees');
-const Academic = require('../../models/academic');
-const Classes = require('../../models/classes');
-const FeesReceipt = require('../../models/feesReceipt');
+const Student = require("../../models/student");
+const BasicInfo = require("../../models/basicInfo");
+const ContactInfo = require("../../models/contactInfo");
+const Fees = require("../../models/fees");
+const Academic = require("../../models/academic");
+const Classes = require("../../models/classes");
+const FeesReceipt = require("../../models/feesReceipt");
 
 //---------------------------------------------------------
-//--------------- PENDING STUDENTS FEES --------------------
+//--------------- PENDING STUDENTS FEES -------------------
 //---------------------------------------------------------
 
-async function getAllPendingStudentsFees(req, res) {
-  try{
-
+async function getAllPendingStudentsFees(req, res, next) {
+  try {
     let pending_students = await Academic.find()
-    .populate({
-      path: 'student_id',
-      select: '-_id student_id',
-      populate:[
-        {path: 'basic_info_id', select: 'full_name -_id'},
-        {path: 'contact_info_id', select: 'whatsapp_no address -_id'}
-      ]
-    })
-    .populate({
-      path: 'class_id', 
-      select: '-_id class_name medium stream batch_start_year batch_end_year is_active',
-      match:{
-        is_active : 1
-      }
-    })
-    .populate({
-      path: 'fees_id', 
-      select: '-_id -date -__v',
-      match:{
-        pending_amount: { $gt: 0}
-      }
+      .populate({
+        path: "student_id",
+        select: "-_id student_id",
+        populate: [
+          { path: "basic_info_id", select: "full_name -_id" },
+          { path: "contact_info_id", select: "whatsapp_no address -_id" },
+        ],
+      })
+      .populate({
+        path: "class_id",
+        select:
+          "-_id class_name medium stream batch_start_year batch_end_year is_active",
+        match: {
+          is_active: 1,
+        },
+      })
+      .populate({
+        path: "fees_id",
+        select: "-_id -date -__v",
+        match: {
+          pending_amount: { $gt: 0 },
+        },
+      });
+
+    pending_students = pending_students.filter((student) => {
+      return student.fees_id != null && student.class_id != null;
     });
 
-    pending_students = pending_students.filter((student)=>{
-      return student.fees_id != null && student.class_id != null;
-    })
-
-    if(!pending_students[0]){
+    if (!pending_students[0]) {
       return res.status(200).json({
-        success: true,
-        message: 'No students with pending fees',
-      })
+        success: false,
+        message: 'No students with pending fees'
+      });
     }
 
     res.status(200).json({
       success: true,
-      data:{
-        pending_students
-      } ,
+      data: {
+        pending_students,
+      },
     });
-    
-  } catch(error){
-    res.status(404).json({
-      success: false,
-      message: error.message,
-    })
+  } catch (error) {
+    next(error);
   }
 }
 
@@ -67,7 +63,7 @@ async function getAllPendingStudentsFees(req, res) {
 // //--------------- PARTICULAR STUDENT FEES DETAILS --------------------
 // //---------------------------------------------------------
 
-// async function getStudentFeesDetails(req, res) {
+// async function getStudentFeesDetails(req, res, next) {
 //   try{
 //     const student_id = req.params.student_id;
 
@@ -83,14 +79,14 @@ async function getAllPendingStudentsFees(req, res) {
 //       ]
 //     })
 //     .populate({
-//       path: 'class_id', 
+//       path: 'class_id',
 //       select: '-_id class_name medium stream batch_start_year batch_end_year is_active',
 //       match:{
 //         is_active : 1
 //       }
 //     })
 //     .populate({
-//       path: 'fees_id', 
+//       path: 'fees_id',
 //       select: '-_id -date -__v',
 //       match:{
 //         pending_amount: { $gt: 0}
@@ -102,10 +98,7 @@ async function getAllPendingStudentsFees(req, res) {
 //     })
 
 //     if(!pending_students[0]){
-//       return res.status(200).json({
-//         success: true,
-//         message: 'No students with pending fees',
-//       })
+// }     throw new Error('No students with pending fees');
 //     }
 
 //     res.status(200).json({
@@ -114,56 +107,72 @@ async function getAllPendingStudentsFees(req, res) {
 //         pending_students
 //       } ,
 //     });
-    
+
 //   } catch(error){
-//     res.status(404).json({
-//       success: false,
-//       message: error.message,
-//     })
+//     next(error);
 //   }
 // }
+
+//---------------------------------------------------------
+//------- PARTICULAR STUDENTS ALL ACADEMIC DETAILS --------
+//---------------------------------------------------------
+async function studentAllAcademicDetails(req, res, next){
+  try{
+    const student_id = req.params.student_id;
+
+    const student_details = await Student.findOne({ student_id });
+
+    const academic_details = await Academic.find({
+      student_id: student_details._id,
+    })
+    .populate({
+      path: "class_id"
+    })
+    .populate({
+      path: "fees_id"
+    })
+    .sort({date: -1});
+
+    res.status(200).json({
+      success: true,
+      academic_details,
+    });
+  }
+  catch(error){
+    next(error);
+  }
+}
+
 
 //---------------------------------------------------------
 //--------------- STUDENT FEES HISTORY --------------------
 //---------------------------------------------------------
 
-async function studentFessHistory(req, res){
-  try{
+async function studentFeesHistory(req, res, next) {
+  try {
+    const academic_id = req.params.academic_id;
 
-    const student_id = req.prams.student_id;
+    const academic_details = await Academic.findById(academic_id)
 
-    const student_details = await Student.findOne({student_id});
+    const fees_details = await Fees.findById(academic_details.fees_id);
 
-    const academic_details = await Academic.findOne({student_id: student_details._id})
-    .populated({
-      path: "class_id",
-      match: {
-        is_active: 1
-      }
-    });
-
-    academic_details = academic_details.filter((academic)=>{
-      return academic.class_id != null;
-    });
+    const all_receipts = await FeesReceipt.find({fees_id: fees_details._id})
+    .populate('admin_id')
+    .populate('transaction_id');
 
 
     res.status(200).json({
-      success: false,
-      data: {
-        academic_details
-      },
-    })
+      success: true,
+      all_receipts,
+    });
+  } catch (error) {
+    next(error);
   }
-  catch(error){
-    res.status(404).json({
-      success: false,
-      message: error.message,
-    })
-  }  
 } //Pending
 
 module.exports = {
   getAllPendingStudentsFees,
   // getStudentFeesDetails,
-  studentFessHistory,
+  studentFeesHistory,
+  studentAllAcademicDetails
 };

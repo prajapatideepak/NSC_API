@@ -4,20 +4,22 @@ const mongoose = require("mongoose");
 
 const classes = new mongoose.Schema({
     batch_start_year:{
-        type: String,
-        requied: [true, 'Please enter batch start year'],
+        type: Number,
+        requied: [true, 'Please enter batch_start_year'],
+        minLength: [4, 'Please enter four digits only'],
     },
     batch_end_year:{
-        type: String,
-        requied: [true, 'Please enter batch end year'],
+        type: Number,
+        requied: [true, 'Please enter batch_end_year'],
+        minLength: [4, 'Please enter four digits only'],
     },
     class_name:{
         type: String,
-        required: [true, 'Please enter class_name'],
+        required: [true, 'Please enter class name'],
     },
     total_student:{
         type: Number,
-        required: [true, 'Please enter total Students'],
+        default: 0
     },
     fees:{
         type: Number,
@@ -27,23 +29,23 @@ const classes = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    is_active:{
-        type: Number,
-        required: true,
-        default: 1
-    },
     stream:{
+        default: "none",
         type: String,
         required: [true, 'Please select stream'],
     },
     medium:{
         type: String,
-        required: [true, 'Please enter medium'],
+        required: [true, 'Please select medium'],
     },
-    date:{
+    is_active:{
+        default: 1,
+        type: Number,
+    },
+    date: {
         type: Date,
-        default: Date.now()
-    }
+        default: Date.now,
+    },
 })
 
 module.exports = mongoose.model('classes', classes);

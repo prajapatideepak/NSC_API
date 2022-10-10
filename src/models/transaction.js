@@ -24,7 +24,7 @@ const transaction = new mongoose.Schema({
     },
     upi_no:{
         type: String,
-        default: -1,
+        default: "-1",
     },
     amount:{
         type: Number,

@@ -5,14 +5,56 @@ const Fees = require('../../models/fees');
 const Academic = require('../../models/academic');
 const Classes = require('../../models/classes');
 const FeesReceipt = require('../../models/feesReceipt');
+const multer = require('multer');
+
+const imageStorage = multer.diskStorage({ 
+  destination : (req, file, cb) => { cb( null , './public/images') ; }, 
+  filename : (req, file, cb) => { 
+    console.log(file)
+    const ext = file.type.spilt("/")[1];
+    cb(null , `${file.name}`) 
+  }, 
+})
+const imageFilter = (req, file, cb) => { 
+  console.log(file);
+  if ( !file.type.split("/")[1] === "pdf" || file.type.split("/")[1] === "jpg" || file.type.split("/")[1] === "jpeg"){ 
+      cb( new Error( 'Only jpg, jpeg or png images allowed!' ), false ) ; 
+  } 
+  else{
+    cb(null, true) 
+  }
+} 
+const imageUpload = multer({ 
+  storage: imageStorage, 
+  // fileFileter: imageFilter, 
+  // limits: {fileSize: 2000000} 
+}).single('studentProfile')
 
 //-----------------------------------------------------
 //---------------- STUDENT REGISTRATION ---------------
 //-----------------------------------------------------
-async function registerStudent(req, res){
-  try{
+async function registerStudent(req, res, next){
 
-    const {class_id, photo_url, full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name, admission_date} = req.body;
+  try{    
+    const {class_id, photo_url="photo", full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name, admission_date} = req.body;
+    
+    if(req.files.photo){
+      imageUpload(req, res, function(err){
+        console.log(req.files.photo)
+        if(err instanceof multer.MulterError){
+          throw new Error(err.message)
+          console.log(err)
+        }
+        else if(err){
+          console.log(err)
+          return res.status(200).json({
+            success: false,
+            message: 'Failed to upload photo'
+          });
+        }
+      });
+    }
+
 
     // START -> Checking if student already exist in same class
     const check_basic_info = await BasicInfo.findOne({
@@ -80,6 +122,7 @@ async function registerStudent(req, res){
     
     //START => Updating total student in class
     const class_info = await Classes.findById(class_id);
+    console.log(class_info);
     await Classes.findByIdAndUpdate(
       class_id,
       {total_student: class_info.total_student + 1}
@@ -100,18 +143,15 @@ async function registerStudent(req, res){
     });
 
   } catch(error){
-    //500 = internal server error
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log(error)
+    next(error);
   }
 }
 
 //----------------------------------------------------------------------
 //-- GETTING PARTICULAR STUDENT DETAILS BY ID, FULLNAME, WHATSAPP_NO ---
 //----------------------------------------------------------------------
-async function getStudentDetails(req, res){
+async function getStudentDetails(req, res, next){
   try{
     let student_params = req.params.id_name_whatsapp;
     let students_detail = [];
@@ -142,19 +182,23 @@ async function getStudentDetails(req, res){
     });
 
     if(!data[0]){
-      return res.status(200).json(
-        { 
-          success: false,
-          message:'No student found'
-        }
-      );
+      res.status(200).json({
+        success: false,
+        message: 'No student found'
+      });
     }
 
     let myPromise = new Promise(function(resolve) {
       var i=0;
       data.forEach( async (item) =>{
         //getting academic details
-        const academic_details = await Academic.findOne({student_id:item._id}).populate("class_id");
+        const academic_details = await Academic.findOne({student_id:item._id})
+        .populate({
+          path: "class_id",
+          match: {
+            is_active: 1,
+          },
+        });
         
         //Getting fees details
         const fees_details = await Fees.findById(academic_details.fees_id);
@@ -183,18 +227,14 @@ async function getStudentDetails(req, res){
     });    
 
   } catch(error){
-    //400 = client error
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }  
 }
 
 //------------------------------------------------------------------------
 //------- UNIVERSAL STUDENT DETAILS BY ID, FULLNAME, WHATSAPP_NO ---------
 //------------------------------------------------------------------------
-async function getStudentDetailsUniversal(req, res){
+async function getStudentDetailsUniversal(req, res, next){
   try{
     let student_params = req.params.id_name_whatsapp;
     let students_detail = [];
@@ -225,12 +265,10 @@ async function getStudentDetailsUniversal(req, res){
     });
 
     if(!data[0]){
-      return res.status(200).json(
-        { 
-          success: false,
-          message:'No student found'
-        }
-      );
+      return res.status(200).json({
+        success: false,
+        message: 'No Student Found'
+      });
     }
 
     let myPromise = new Promise(function(resolve) {
@@ -266,23 +304,27 @@ async function getStudentDetailsUniversal(req, res){
     });    
 
   } catch(error){
-    //400 = client error
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   } 
 }
 
 //----------------------------------------------------
 //--------------- CANCEL STUDENT ADMINSSION ----------
 //----------------------------------------------------
-async function cancelStudentAdmission(req, res) {
+async function cancelStudentAdmission(req, res, next) {
   try{
-    const student_details = await Student.findOneAndUpdate({student_id: req.params.student_id},{is_cancelled:1},{returnOriginal: false});
+    const student_details = await Student.findOneAndUpdate({student_id: req.params.student_id},{is_cancelled: 1},{returnOriginal: true});
 
-    const academic_info = await Academic.findOneAndUpdate({student_id:student_details._id},{is_cancelled:1},{returnOriginal:true})
-    .populate("fees_id","")
+    console.log(student_details);
+
+    const academic_info = await Academic.findOne({student_id:student_details._id})
+    .populate("fees_id", "")
+    .populate({
+      path: "class_id",
+      match: {
+        is_active: 1,
+      },
+    });
 
     //START => Updating total student in class
     const class_info = await Classes.findById(academic_info.class_id);
@@ -299,20 +341,18 @@ async function cancelStudentAdmission(req, res) {
     });
 
   } catch(error){
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 }
 
 //----------------------------------------------------
 //---------------- UPDATE STUDENT DETAILS ------------
 //----------------------------------------------------
-async function updateStudentDetails(req, res){
+async function updateStudentDetails(req, res, next){
   try{
 
-     const {photo_url, full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name, student_id} = req.body;  
+     const {photo_url="photo", full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name} = req.body; 
+     const student_id = req.params.student_id;
     
     //updating student info
     const student = await Student.findOneAndUpdate(student_id,{
@@ -323,17 +363,17 @@ async function updateStudentDetails(req, res){
     
     //updating basic info
     await BasicInfo.findByIdAndUpdate(student.basic_info_id,{
-      photo_url: photo_url && photo_url.trim(),
+      photo_url: photo_url ? photo_url.trim() : '',
       full_name: full_name.trim(),
       gender,
       dob
     });
-
+    
     //updating contact info
     await ContactInfo.findByIdAndUpdate(student.contact_info_id,{
       whatsapp_no: whatsapp_no.trim(),
-      alternate_no: alternate_no && alternate_no.trim(),
-      email: email && email.trim(),
+      alternate_no: (alternate_no != '' && alternate_no != null) ? alternate_no.trim() : '',
+      email: (email != '' && email != null) ? email.trim() : '',
       address: address.trim(),
     })
 
@@ -341,7 +381,13 @@ async function updateStudentDetails(req, res){
     //fetching academic details
     let academic = await Academic.findOneAndUpdate({student_id: student._id},{
         school_name,
-      },{returnOriginal: false, new: true});
+      },{returnOriginal: false, new: true})
+      .populate({
+      path: "class_id",
+      match: {
+        is_active: 1,
+      },
+    });
 
     //-------------calculate pending amount--------------------
     let totalFeesPaid = 0;
@@ -355,22 +401,18 @@ async function updateStudentDetails(req, res){
 
     //updating fees
     const fees = await Fees.findByIdAndUpdate(academic.fees_id,{
-      discount: discount && discount.trim(),
+      discount: (discount != '' && discount != null) ? discount : 0,
       net_fees,
       pending_amount: net_fees - totalFeesPaid
     });
     
     res.status(200).json({
-      success: false,
+      success: true,
       message: 'Student details successfully updated',
     });
 
   } catch(error){
-    //500 = internal server error
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 }
 
@@ -378,7 +420,7 @@ async function updateStudentDetails(req, res){
 //----------------------------------------------------
 //------------------- TANSFER STUDENT ----------------
 //----------------------------------------------------
-async function transerStudentsToNewClass(req, res){
+async function transerStudentsToNewClass(req, res, next){
   try{
     const {student_ids, class_id} = req.body;
 
@@ -419,11 +461,7 @@ async function transerStudentsToNewClass(req, res){
     
 
   } catch(error){
-    //400 = client error
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    next(error);
   }
 }
 
