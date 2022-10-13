@@ -12,7 +12,7 @@ const admin = new mongoose.Schema({
     password:{
         type: String,
         required: [true, 'Please enter password'],
-        select: false,
+        select: false,  
     },
     staff_id:{
         type: mongoose.Schema.ObjectId,

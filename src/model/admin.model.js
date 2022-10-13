@@ -5,7 +5,6 @@ const ContactInfo = require("../models/contactInfo");
 const { populate } = require("../models/admin");
 
 async function insertAdmin(body) {
-  console.log(body);
   const basic_info_id = await BasicInfo.create({
     photo: body.photo,
     full_name: body.full_name,
@@ -43,7 +42,6 @@ async function getAdminByUsername(u) {
     .select("password")
     .exec();
 
-  console.log(adminData);
   return adminData;
 }
 
@@ -66,16 +64,45 @@ async function getAdminByUser(u) {
       path: "staff_id",
       populate: ["basic_info_id", "contact_info_id"],
     })
-    .exec();  
+    .exec();
 
-  console.log(adminData);
+  return adminData;
+}
+
+async function ChangePassowrdByUsername(username, hasedPassword) {
+  const result = await admin.findOneAndUpdate(
+    { username: username },
+    { password: hasedPassword }
+  );
+
+  return result;
+}
+
+async function changeAdminByUsername(username, data) {
+  const result = await admin.findOneAndUpdate({ username: username }, data);
+
+  return result;
+}
+
+async function getAllAdmin() {
+  const adminData = await admin
+    .find()
+    .populate({
+      path: "staff_id",
+      populate: ["basic_info_id", "contact_info_id"],
+    })
+    .exec();
+
   return adminData;
 }
 
 module.exports = {
   insertAdmin,
+  ChangePassowrdByUsername,
   getAdminByUsername,
   updateAdminById,
   getAdminByUser,
+  getAllAdmin,
   getAdminByid,
+  changeAdminByUsername,
 };

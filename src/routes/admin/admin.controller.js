@@ -4,6 +4,9 @@ const {
   updateAdminById,
   getAdminByid,
   getAdminByUser,
+  ChangePassowrdByUsername,
+  getAllAdmin,
+  changeAdminByUsername,
 } = require("../../model/admin.model");
 const bcrypt = require("bcrypt");
 const {
@@ -14,7 +17,6 @@ const {
 const admin = require("../../models/admin");
 
 async function httpInsertAdmin(req, res) {
-  console.log(req.body);
   const admin = req.body;
 
   if (
@@ -52,7 +54,6 @@ async function httpGetadmin(req, res) {
 
   try {
     const username = await verifyToken(token);
-    console.log(username.userID);
     const admin = await getAdminByUser(username.userID);
 
     if (admin) {
@@ -71,6 +72,37 @@ async function httpGetadmin(req, res) {
       ok: false,
       error: error,
     });
+  }
+}
+
+async function httpChangeByAdmin(req, res) {
+  const { username } = req.body;
+  try {
+    const adminData = await getAdminByUser(username);
+    const result = await changeAdminByUsername(username, {
+      is_super_admin: !adminData.is_super_admin,
+    });
+    return res.status(200).send(result);
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+}
+
+async function httpSetDefault(req, res) {
+  const { username } = req.body;
+  console.log(req.body);
+  console.log("username", username);
+  const password = "admin";
+
+  try {
+    const hasedPassword = await bcrypt.hash(password, 10);
+
+    const result = await changeAdminByUsername(username, {
+      password: hasedPassword,
+    });
+    return res.status(200).send(result);
+  } catch (error) {
+    res.status(400).send(error.message);
   }
 }
 
@@ -105,8 +137,7 @@ async function httpLoginRequest(req, res) {
 
 async function httpUpdateAdmin(req, res) {
   const { _id, ...data } = req.body;
-
-  console.log(data);
+  
   if (!_id) {
     return res.status(400).json({
       ok: false,
@@ -126,9 +157,60 @@ async function httpUpdateAdmin(req, res) {
   }
 }
 
+async function httpChangePassword(req, res) {
+  const data = req.body;
+  const token = req.headers.authorization;
+
+  if (!data.oldpassword || !data.newpassword || !data.confirmpassword) {
+    return res.status(400).send("All Field Requird");
+  }
+
+  if (data.newpassword !== data.confirmpassword) {
+    return res.status(400).send("Password Did not match");
+  }
+
+  try {
+    const username = await verifyToken(token);
+    const admin = await getAdminByUsername(username.userID);
+
+    if (admin) {
+      const hasedOldpassword = await bcrypt.hash(data.oldpassword, 10);
+      if (await bcrypt.compare(data.oldpassword, admin.password)) {
+        const hasedPassword = await bcrypt.hash(data.newpassword, 10);
+        try {
+          const result = ChangePassowrdByUsername(
+            username.userID,
+            hasedPassword
+          );
+          return res.status(200).json(result);
+        } catch (error) {
+          return res.status(500).send(error.message);
+        }
+      } else {
+        return res.status(400).send("Wrong Old Password");
+      }
+    }
+  } catch (error) {
+    return res.status(500).send(error?.message);
+  }
+}
+
+async function httpGetAllAdmin(req, res) {
+  try {
+    const adminData = await getAllAdmin();
+    res.status(200).json(adminData);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}
+
 module.exports = {
   httpInsertAdmin,
+  httpChangePassword,
   httpLoginRequest,
+  httpChangeByAdmin,
   httpGetadmin,
+  httpGetAllAdmin,
   httpUpdateAdmin,
+  httpSetDefault,
 };

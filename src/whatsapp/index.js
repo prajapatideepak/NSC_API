@@ -10,7 +10,7 @@ const SESSION_FILE_PATH = "./session.json";
 let sessionData;
 if (fs.existsSync(SESSION_FILE_PATH)) {
   sessionData = require(SESSION_FILE_PATH);
-}
+} 
 
 const client = new Client({
   authStrategy: new LocalAuth(),
