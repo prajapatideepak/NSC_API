@@ -5,6 +5,7 @@ const Fees = require('../../models/fees');
 const Academic = require('../../models/academic');
 const Classes = require('../../models/classes');
 const FeesReceipt = require('../../models/feesReceipt');
+const generateReceiptFunction = require('../receipt/receipt.controller');
 const multer = require('multer');
 
 const imageStorage = multer.diskStorage({ 
@@ -36,11 +37,11 @@ const imageUpload = multer({
 async function registerStudent(req, res, next){
 
   try{    
+
     const {class_id, photo_url="photo", full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name, admission_date} = req.body;
     
-    if(req.files.photo){
+    if(req.files?.photo){
       imageUpload(req, res, function(err){
-        console.log(req.files.photo)
         if(err instanceof multer.MulterError){
           throw new Error(err.message)
           console.log(err)
@@ -54,7 +55,6 @@ async function registerStudent(req, res, next){
         }
       });
     }
-
 
     // START -> Checking if student already exist in same class
     const check_basic_info = await BasicInfo.findOne({
@@ -88,8 +88,8 @@ async function registerStudent(req, res, next){
 
     const contact_info_id = await ContactInfo.create({
       whatsapp_no: whatsapp_no.trim(),
-      alternate_no: alternate_no && alternate_no.trim(),
-      email: email && email.trim(),
+      alternate_no: alternate_no ? alternate_no.trim() : '',
+      email: email ? email.trim() : '',
       address: address.trim()
     })
 
@@ -122,7 +122,7 @@ async function registerStudent(req, res, next){
     
     //START => Updating total student in class
     const class_info = await Classes.findById(class_id);
-    console.log(class_info);
+
     await Classes.findByIdAndUpdate(
       class_id,
       {total_student: class_info.total_student + 1}
@@ -143,7 +143,6 @@ async function registerStudent(req, res, next){
     });
 
   } catch(error){
-    console.log(error)
     next(error);
   }
 }
@@ -313,9 +312,8 @@ async function getStudentDetailsUniversal(req, res, next){
 //----------------------------------------------------
 async function cancelStudentAdmission(req, res, next) {
   try{
-    const student_details = await Student.findOneAndUpdate({student_id: req.params.student_id},{is_cancelled: 1},{returnOriginal: true});
 
-    console.log(student_details);
+    const student_details = await Student.findOneAndUpdate({student_id: req.params.student_id},{is_cancelled: 1},{returnOriginal: true});
 
     const academic_info = await Academic.findOne({student_id:student_details._id})
     .populate("fees_id", "")
@@ -332,7 +330,7 @@ async function cancelStudentAdmission(req, res, next) {
       class_info._id,
       {total_student: class_info.total_student - 1}
     );
-    // END
+    END
 
     res.status(200).json({
       success: true,
@@ -354,8 +352,9 @@ async function updateStudentDetails(req, res, next){
      const {photo_url="photo", full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name} = req.body; 
      const student_id = req.params.student_id;
     
+
     //updating student info
-    const student = await Student.findOneAndUpdate(student_id,{
+    const student = await Student.findOneAndUpdate({student_id},{
       mother_name: mother_name.trim(),
       reference,
       note,
@@ -376,7 +375,6 @@ async function updateStudentDetails(req, res, next){
       email: (email != '' && email != null) ? email.trim() : '',
       address: address.trim(),
     })
-
 
     //fetching academic details
     let academic = await Academic.findOneAndUpdate({student_id: student._id},{
@@ -425,12 +423,44 @@ async function transerStudentsToNewClass(req, res, next){
     const {student_ids, class_id} = req.body;
 
     //START => Updating total student in class
-    const class_info = await Classes.findById(class_id);
-    await Classes.findByIdAndUpdate(
-      class_id,
-      {total_student: student_ids.length}
-    );
+    const class_info = await Classes.findByIdAndUpdate(class_id, { $inc: { total_student: student_ids.length}});
+    if(!class_info) {
+      return res.status(500).json({
+        success: false,
+        message:'No selected class found'
+      });
+    }
     // END
+
+
+    if(class_info.is_active && student_ids.length == 1){
+      const student_info = await Student.findOne({student_id: student_ids[0]});
+
+      const fees_details = await Fees.create({
+        net_fees: class_info._id,
+        pending_amount: class_info._id
+      })
+
+      const academic = await Academic.findOneAndUpdate({student_id: student_info._id},{
+        class_id,
+        fees_id: fees_details._id
+      }).sort({date: -1})
+
+      //deleting old records of fees
+      await Fees.findByIdAndDelete(academic.fees_id);
+
+      const classes = await Classes.findByIdAndUpdate(academic.class_id,
+        {
+          $inc:{total_student: -1 }
+        }
+      )
+
+      return res.status(200).json({
+        success: true,
+        message:'Student successfully transfered'
+      });
+      
+    }
     
     student_ids.forEach(async (student_id) =>{
       const student_info = await Student.findOne({student_id});
@@ -442,6 +472,7 @@ async function transerStudentsToNewClass(req, res, next){
       const net_fees = new_class_info.fees;
 
       const fees = await Fees.create({
+        pending_amount: net_fees,
         discount: 0,
         net_fees
       });

@@ -4,7 +4,7 @@ const BasicInfo = require("../models/basicInfo");
 const ContactInfo = require("../models/contactInfo");
 
 async function insertAdmin(body) {
-  console.log(body);
+
   const basic_info_id = await BasicInfo.create({
     photo: body.photo,
     full_name: body.full_name,
@@ -39,11 +39,12 @@ async function getAdminByUsername(u) {
   const adminData = await admin
     .findOne({ username: u })
     .select("password")
+    .select("is_super_admin")
     .exec();
 
-  console.log(adminData);
   return adminData;
 }
+
 
 async function updateAdminById(_id, data) {
   const result = await admin.findOneAndUpdate({ id: _id }, data);
@@ -61,5 +62,5 @@ module.exports = {
   insertAdmin,
   getAdminByUsername,
   updateAdminById,
-  getAdminByid,
+  getAdminByid
 };

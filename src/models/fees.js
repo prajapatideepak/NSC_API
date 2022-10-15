@@ -12,7 +12,7 @@ const fees = new mongoose.Schema({
     },
     pending_amount:{
         type: Number,
-        default: 0
+        required: [true, 'Pending amount is required']
     },
     date:{
         type: Date,

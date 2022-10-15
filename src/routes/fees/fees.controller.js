@@ -5,6 +5,7 @@ const Fees = require("../../models/fees");
 const Academic = require("../../models/academic");
 const Classes = require("../../models/classes");
 const FeesReceipt = require("../../models/feesReceipt");
+const {generateReceiptFunction} = require('../receipt/receipt.controller')
 
 //---------------------------------------------------------
 //--------------- PENDING STUDENTS FEES -------------------
@@ -143,6 +144,46 @@ async function studentAllAcademicDetails(req, res, next){
   }
 }
 
+//---------------------------------------------------------
+//------------ TRANSFER FEES TO ANOTHER STUDENT -----------
+//---------------------------------------------------------
+
+async function transferFeesToStudent(req, res, next){
+  try{
+    const {payer_fees_id, payee_id, amount, admin_id, security_pin} = req.body;
+    const is_by_cash = 1;
+    const is_by_cheque=0;
+    const is_by_upi=0;
+    const cheque_no = -1;
+    const upi_no = '-1';
+    const discount = 0;
+
+    //---------generating Student Receipt--------
+    const result = await generateReceiptFunction(payee_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin);
+
+    if(result == false){
+      return res.status(200).json({
+          success: false,
+          message: 'Incorrect security pin'
+      });
+    }
+
+    //-------Deduct amount from payers fees-----
+    const fees_details = await Fees.findByIdAndUpdate(payer_fees_id, {
+      $inc: { pending_amount: amount }
+    }, {returnOriginal: false, new: true})
+
+    res.status(200).json({
+      success: true,
+      message:'Fees successfully transferred', 
+      fees_details
+    });
+  }
+  catch(error){
+    next(error);
+  }
+}
+
 
 //---------------------------------------------------------
 //--------------- STUDENT FEES HISTORY --------------------
@@ -174,5 +215,6 @@ module.exports = {
   getAllPendingStudentsFees,
   // getStudentFeesDetails,
   studentFeesHistory,
-  studentAllAcademicDetails
+  studentAllAcademicDetails,
+  transferFeesToStudent
 };

@@ -15,20 +15,14 @@ const bcrypt = require('bcrypt');
 //-------------------------------------------------------------
 //------------------ GENERATE STUDENT RECEIPT -----------------
 //-------------------------------------------------------------
-async function generateStudentReceipt(req, res, next) {
-    try{
-        const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_username, admin_security_pin} = req.body;
+const generateReceiptFunction = async (student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin)=>{
+    const admin_details = await Admin.findById(admin_id)
 
-        const admin_details = await Admin.findOne({username: admin_username})
-        const isMatch = 1
-        //await bcrypt.compare(admin_security_pin, admin_details.security_pin);
+        // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
 
-        if(!isMatch) {
-            return res.status(200).json({
-                success: false,
-                message: 'Incorrect security pin'
-            });
-        }
+        // if(!isMatch) {
+        //     return false;
+        // }
 
         const student_details = await Student.findOne({student_id});
 
@@ -56,8 +50,8 @@ async function generateStudentReceipt(req, res, next) {
             is_by_cash,
             is_by_cheque,
             is_by_upi,
-            cheque_no: cheque_no ? cheque_no : -1,
-            upi_no: upi_no ? upi_no : "",
+            cheque_no: cheque_no != '' ? cheque_no : -1,
+            upi_no: upi_no != '' ? upi_no : "",
             amount: net_amount,
         })
 
@@ -76,13 +70,28 @@ async function generateStudentReceipt(req, res, next) {
         //updating pending amount of student in fees table
         await Fees.findOneAndUpdate({_id:academic_details.fees_id}, { $inc: { pending_amount: - amount } });
 
-        res.status(200).json({
-            success: true,
-            message: 'Receipt generated successfully',
-            data: {
-                fees_receipt_details
-            }
-        })
+        return fees_receipt_details;
+}
+async function generateStudentReceipt(req, res, next) {
+    try{
+        const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin} = req.body;
+        const fees_receipt_details = await generateReceiptFunction(student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin);
+        
+        if(fees_receipt_details == false){
+            return res.status(200).json({
+                success: false,
+                message: '*Incorrect security pin'
+            });
+        }
+        else{
+            res.status(200).json({
+                success: true,
+                message: 'Receipt generated successfully',
+                data: {
+                    fees_receipt_details
+                }
+            })
+        }
     }
     catch(error){
        next(error);
@@ -162,19 +171,18 @@ async function updateStudentReceipt(req, res, next){
     try{
         const fees_receipt_id = req.params.fees_receipt_id;
 
-        const {is_by_cash, is_by_cheque, is_by_upi, cheque_no, upi_no, amount, discount, admin_id} = req.body;
-        
-        const admin_details = await Admin.findById();
+        const {is_by_cash, is_by_cheque, is_by_upi, cheque_no, upi_no, amount, discount, security_pin, admin_id} = req.body;        
 
-        // const admin_details = await Admin.findOne({username: super_admin_username, is_super_admin: 1}).select('password');
-        // const isMatch = await bcrypt.compare(super_admin_password, admin_details.password);
+        const admin_details = await Admin.findById(admin_id);
 
-        // if(!isMatch) {
-        //     return res.status(200).json({
-        //         success: false,
-        //         message: 'Incorrect Username or Password'
-        //     });
-        // }
+        const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
+
+        if(!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please enter valid PIN'
+            });
+        }
 
         const net_amount = amount - discount;
         
@@ -216,15 +224,16 @@ async function updateStaffReceipt(req, res, next){
     try{
         const salary_receipt_id = req.params.salary_receipt_id;
 
-        const {is_by_cash, is_by_cheque, is_by_upi, total_hours, is_hourly, rate_per_hour, cheque_no, upi_no, amount, super_admin_username, super_admin_password } = req.body;
+        const {is_by_cash, is_by_cheque, is_by_upi, total_hours, is_hourly, rate_per_hour, cheque_no, upi_no, amount, admin_id, security_pin } = req.body;
 
-        const admin_details = await Admin.findOne({username: super_admin_username, is_super_admin: 1}).select('password');
-        const isMatch = await bcrypt.compare(super_admin_password, admin_details.password);
+        const admin_details = await Admin.findById(admin_id);
+
+        const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
         
         if(!isMatch) {
             return res.status(200).json({
                 success: false,
-                message: 'Incorrect Username or Password'
+                message: 'Please enter valid PIN'
             });
         }
 
@@ -388,18 +397,26 @@ async function searchReceipt(req, res, next){
             if (student_full_name?.indexOf(receipt_params) > -1){
                 isStudentNameFound = true;
             }
+            
             let isReceiptFound = false
+
             //Finding receipts from receipt_id
-            if(item.academics[0].fees[0].fees_receipt[0]){
-                item.academics[0].fees[0].fees_receipt.forEach((item)=>{
+            let receipts;
+            if(item.academics[0].fees[0].fees_receipt[0] && !isNaN(receipt_params)){
+                receipts = item.academics[0].fees[0].fees_receipt.filter((item)=>{
                     if(item.fees_receipt_id == receipt_params){
                         isReceiptFound = true;
+                        return item;
                     }
                 })
-
             }
 
-            return item.student_id == receipt_params || isStudentNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params || isReceiptFound;
+            if(isReceiptFound){
+                item.academics[0].fees[0].fees_receipt = receipts;
+                return item
+            }
+
+            return (item.student_id == receipt_params || isStudentNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params)
 
         });
 
@@ -470,22 +487,30 @@ async function searchReceipt(req, res, next){
             if (staff_full_name?.indexOf(receipt_params) > -1){
                 isStaffNameFound = true;
             }
+
             let isReceiptFound = false
+
             //Finding receipts from receipt_id
-            if(item.salary_receipt[0]){
-                item.salary_receipt.forEach((item)=>{
+            let receipts;
+            if(item.salary_receipt[0] && !isNaN(receipt_params)){
+                receipts = item.salary_receipt.filter((item)=>{
                     if(item.salary_receipt_id == receipt_params){
                         isReceiptFound = true;
+                        return item;
                     }
                 })
             }
 
-            return isStaffNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params || isReceiptFound;
+            if(isReceiptFound){
+                item.salary_receipt = receipts;
+                return item
+            }
+
+            return isStaffNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params;
 
         });
 
         if(!staff_data[0] && !student_data[0]){
-
             return res.status(200).json({
                 success: false,
                 message: 'No Receipt found'
@@ -497,7 +522,6 @@ async function searchReceipt(req, res, next){
             student_receipts,
             staff_receipts
         });
-
     }
     catch(error){
         next(error);
@@ -509,5 +533,6 @@ module.exports = {
     generateStaffReceipt,
     updateStudentReceipt,
     updateStaffReceipt,
-    searchReceipt
+    searchReceipt,
+    generateReceiptFunction
 }

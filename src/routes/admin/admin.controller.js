@@ -2,7 +2,7 @@ const {
   insertAdmin,
   getAdminByUsername,
   updateAdminById,
-  getAdminByid,
+  getAdminByid
 } = require("../../model/admin.model");
 const bcrypt = require("bcrypt");
 const { GenrateToken } = require("../../middlewares/auth");
@@ -41,7 +41,6 @@ async function httpInsertAdmin(req, res) {
 async function httpGetadmin(req, res) {
   const id = req.params.id;
 
-  console.log(req.params.id);
   try {
     const admin = await getAdminByid(id);
 
@@ -74,11 +73,43 @@ async function httpLoginRequest(req, res) {
     return res.json({ error: `${error}` });
   }
 }
+async function httpVerifySuperAdmin(req, res) {
+  const superAdminData = req.body;
+  if (!superAdminData.username || !superAdminData.password) {
+    return res.status(400).json({ message: "Please Enter Value" });
+  }
+
+  try {
+    const superAdminDetails = await getAdminByUsername(superAdminData.username);
+
+    if (!superAdminDetails) {
+      return res.status(400).json({
+        error: "Invalid username or Password",
+      });
+    }
+
+    if(superAdminDetails.is_super_admin == 0){
+      return res.status(400).json({
+        error: "Only Super Admin Can Edit",
+      });
+    }
+
+  
+    if (await bcrypt.compare(superAdminData.password, superAdminDetails.password)) {
+      return res.status(200).json({ success: "verified" });
+    } else {
+      return res.status(400).json({ error: "Invalid username or Password" });
+    }
+  } catch (error) {
+    return res.json({ error: `${error}` });
+  }
+}
+
+
 
 async function httpUpdateAdmin(req, res) {
   const { _id, ...data } = req.body;
 
-  console.log(data);
   if (!_id) {
     return res.status(400).json({
       message: "Enter Valid Data",
@@ -102,4 +133,5 @@ module.exports = {
   httpLoginRequest,
   httpGetadmin,
   httpUpdateAdmin,
+  httpVerifySuperAdmin
 };

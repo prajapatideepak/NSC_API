@@ -10,7 +10,7 @@ const contactInfoSchema = new mongoose.Schema({
         maxLength: [10, "Whatsapp number should be of 10 digits"],
         minLength: [10, "Whatsapp number should be of 10 digits"]
     },
-    alternative_no:{
+    alternate_no:{
         type: String,
         maxLength: [10, "Alternate number should be of 10 digits"],
         minLength: [10, "Alternate number should be of 10 digits"]
