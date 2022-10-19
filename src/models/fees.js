@@ -2,10 +2,6 @@ require("../database/databaseConn");
 const mongoose = require('mongoose');
 
 const fees = new mongoose.Schema({
-    total_fees:{
-        type: Number,
-        required: [true, 'Please enter total fees']
-    },
     discount:{
         type: Number,
         default: 0
@@ -16,7 +12,7 @@ const fees = new mongoose.Schema({
     },
     pending_amount:{
         type: Number,
-        default: 0
+        required: [true, 'Pending amount is required']
     },
     date:{
         type: Date,

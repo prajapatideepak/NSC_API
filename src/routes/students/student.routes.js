@@ -3,15 +3,13 @@ const {registerStudent, getStudentDetails, getStudentDetailsUniversal, updateStu
 
 const studentRouter = express.Router();
 
-// studentRouter.get("/", getAllStudents);
-
 studentRouter.post("/register", registerStudent);
 
 studentRouter.get("/details/:id_name_whatsapp", getStudentDetails);
 
 studentRouter.get("/details/universal/:id_name_whatsapp", getStudentDetailsUniversal);
 
-studentRouter.post("/update", updateStudentDetails);
+studentRouter.put("/update/:student_id", updateStudentDetails);
 
 studentRouter.get("/cancel-admission/:student_id", cancelStudentAdmission);
 

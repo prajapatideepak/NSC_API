@@ -5,6 +5,7 @@ const ContactInfo = require("../models/contactInfo");
 const { populate } = require("../models/admin");
 
 async function insertAdmin(body) {
+
   const basic_info_id = await BasicInfo.create({
     photo: body.photo,
     full_name: body.full_name,
@@ -40,10 +41,12 @@ async function getAdminByUsername(u) {
   const adminData = await admin
     .findOne({ username: u })
     .select("password")
+    .select("is_super_admin")
     .exec();
 
   return adminData;
 }
+
 
 async function updateAdminById(_id, data) {
   const result = await admin.findOneAndUpdate({ id: _id }, data);
