@@ -5,6 +5,7 @@ const {
   httpLoginRequest,
   httpUpdateAdmin,
   httpGetadmin,
+  httpVerifySuperAdmin
   httpGetAllAdmin,
   httpChangePassword,
   httpChangeByAdmin,
@@ -15,6 +16,9 @@ const adminRouter = express.Router();
 
 adminRouter.put("/", httpUpdateAdmin);
 adminRouter.post("/", httpInsertAdmin);
+adminRouter.post("/verify", httpVerifySuperAdmin);
+
+
 adminRouter.get("/", httpGetadmin);
 adminRouter.get("/all", httpGetAllAdmin);
 adminRouter.post("/login", httpLoginRequest);

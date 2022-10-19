@@ -2,6 +2,7 @@ const {
   insertAdmin,
   getAdminByUsername,
   updateAdminById,
+
   getAdminByid,
   getAdminByUser,
   ChangePassowrdByUsername,
@@ -133,6 +134,39 @@ async function httpLoginRequest(req, res) {
     return res.json({ ok: false, error: `${error}` });
   }
 }
+async function httpVerifySuperAdmin(req, res) {
+  const superAdminData = req.body;
+  if (!superAdminData.username || !superAdminData.password) {
+    return res.status(400).json({ message: "Please Enter Value" });
+  }
+
+  try {
+    const superAdminDetails = await getAdminByUsername(superAdminData.username);
+
+    if (!superAdminDetails) {
+      return res.status(400).json({
+        error: "Invalid username or Password",
+      });
+    }
+
+    if(superAdminDetails.is_super_admin == 0){
+      return res.status(400).json({
+        error: "Only Super Admin Can Edit",
+      });
+    }
+
+  
+    if (await bcrypt.compare(superAdminData.password, superAdminDetails.password)) {
+      return res.status(200).json({ success: "verified" });
+    } else {
+      return res.status(400).json({ error: "Invalid username or Password" });
+    }
+  } catch (error) {
+    return res.json({ error: `${error}` });
+  }
+}
+
+
 
 async function httpUpdateAdmin(req, res) {
   const token = req.headers.authorization;
@@ -214,5 +248,6 @@ module.exports = {
   httpGetadmin,
   httpGetAllAdmin,
   httpUpdateAdmin,
+  httpVerifySuperAdmin
   httpSetDefault,
 };

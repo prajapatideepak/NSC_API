@@ -6,6 +6,7 @@ const { populate, findOne, findOneAndUpdate } = require("../models/admin");
 const basicInfo = require("../models/basicInfo");
 
 async function insertAdmin(body) {
+
   const basic_info_id = await BasicInfo.create({
     photo: body.photo,
     full_name: body.full_name,
@@ -41,6 +42,7 @@ async function getAdminByUsername(u) {
   const adminData = await admin
     .findOne({ username: u })
     .select("password")
+    .select("is_super_admin")
     .exec();
 
   return adminData;

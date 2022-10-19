@@ -35,10 +35,7 @@ exports.displayClass = async(req,res,next)=>{
         const classes = await Classes.find({is_active:1,batch_start_year:{$eq:new Date().getFullYear()}})
 
         if(!classes[0]){
-            return res.status(200).json({
-                success:false,
-                message:"Classes not found"
-            }) 
+            throw new Error('Classes not found')
         }
 
         res.status(200).json({
@@ -47,10 +44,11 @@ exports.displayClass = async(req,res,next)=>{
             message:"Display successfully"
         })
     } catch (error) {
-        res.status(400).json({
-            success:false,
-            message:error.message
-        })
+        // res.status(400).json({
+        //     success:false,
+        //     message:error.message
+        // })
+        
     }
 }   
 
@@ -142,12 +140,12 @@ exports.deleteClass = async(req,res,next)=>{
 //---------------------------------------------------------------------------------//
 exports.classSearch = async(req,res,next)=>{
     try {
+        const {year, is_primary} =req.query;
+
         const classes = await Classes.find({
-            $or:[
-                {"medium": {$regex:req.params.key, $options:"i"}},
-                {"is_primary" : isNaN(req.params.key) ? -1 : req.params.key},
-                {"stream" : {$regex:req.params.key, $options:"i"}},
-                {"batch_start_year" : req.params.key}
+            $and:[
+                {"is_primary" : is_primary},
+                {"batch_start_year" : year}
             ]
         })
 
