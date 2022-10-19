@@ -28,14 +28,17 @@ exports.createNewClass = async(req,res,next)=>{
 
 
 //------------------------------------//
-//----------Display classes-----------//
+//----------Get All classes-----------//
 //------------------------------------//
-exports.displayClass = async(req,res,next)=>{
+exports.getAllClasses = async(req,res)=>{
     try {
-        const classes = await Classes.find({is_active:1,batch_start_year:{$eq:new Date().getFullYear()}})
+        const classes = await Classes.find()
 
         if(!classes[0]){
-            throw new Error('Classes not found')
+            return res.status(200).json({
+                success:false,
+                message:"Classes not found"
+            }) 
         }
 
         res.status(200).json({
@@ -44,11 +47,64 @@ exports.displayClass = async(req,res,next)=>{
             message:"Display successfully"
         })
     } catch (error) {
-        // res.status(400).json({
-        //     success:false,
-        //     message:error.message
-        // })
+        res.status(400).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+//------------------------------------//
+//----------Get All classes By Year-----------//
+//------------------------------------//
+exports.getAllClassesByYear = async(req,res)=>{
+    try {
+        const classes = await Classes.aggregate([{$group:{_id:{batch_start_year:'$batch_start_year',batch_end_year:'$batch_end_year'}}},{$sort:{batch_start_year: -1}}])
         
+        if(!classes[0]){
+            return res.status(200).json({
+                success:false,
+                message:"Classes not found"
+            }) 
+        }
+
+        res.status(200).json({
+            success:true,
+            data:classes,
+            message:"Display successfully"
+        })
+    } catch (error) {
+        res.status(400).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+//------------------------------------//
+//----------Display classes-----------//
+//------------------------------------//
+exports.displayClass = async(req,res,next)=>{
+    try {
+        const classes = await Classes.find({is_active:1,batch_start_year:{$eq:new Date().getFullYear()}})
+
+        if(!classes[0]){
+            return res.status(200).json({
+                success:false,
+                message:"Classes not found"
+            }) 
+        }
+
+        res.status(200).json({
+            success:true,
+            data:classes,
+            message:"Display successfully"
+        })
+    } catch (error) {
+        res.status(400).json({
+            success:false,
+            message:error.message
+        })
     }
 }   
 
@@ -183,16 +239,15 @@ exports.transferClasses = async(req,res,next)=>{
         //Creating new classes
         classes_details.forEach( async (element) => {
             await Classes.create({
-                batch_start_year: element.batch_start_year,
-                batch_end_year: element.batch_end_year,
+                batch_start_year: element.batch_start_year+1,
+                batch_end_year: element.batch_end_year+1,
                 class_name:element.class_name,
-                total_student:element.total_student,
+                total_student:0,
                 fees:element.fees,
                 is_primary:element.is_primary,
                 stream:element.stream,
                 medium:element.medium,
-                is_active:element.is_active,
-                date:element.date                
+                is_active:1,               
             });
         });
 
@@ -215,9 +270,7 @@ exports.transferClasses = async(req,res,next)=>{
 //-------------------------------------------------//
 exports.displayStudentInClass = async(req,res,next)=>{
     try {
-        const classID = await Classes.findById(req.params.id)
-        const academicID = await Academic.find({class_id:classID}).populate('student_id').populate('fees_id')
-        
+        const academicID = await Academic.find({class_id:req.params.id}).populate('class_id').populate({path:"student_id",populate:["basic_info_id","contact_info_id"]}).populate('fees_id')
 
         if(!academicID[0]){
             return res.status(200).json({

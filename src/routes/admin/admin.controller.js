@@ -2,19 +2,10 @@ const {
   insertAdmin,
   getAdminByUsername,
   updateAdminById,
-
   getAdminByid,
-  getAdminByUser,
-  ChangePassowrdByUsername,
-  getAllAdmin,
-  changeAdminByUsername,
 } = require("../../model/admin.model");
 const bcrypt = require("bcrypt");
-const {
-  GenrateToken,
-  createToken,
-  verifyToken,
-} = require("../../middlewares/auth");
+const { GenrateToken } = require("../../middlewares/auth");
 const admin = require("../../models/admin");
 
 async function httpInsertAdmin(req, res) {
@@ -25,12 +16,10 @@ async function httpInsertAdmin(req, res) {
     !admin.username ||
     !admin.password ||
     !admin.email ||
-    !admin.whatsapp_no ||
-    !admin.security_pin
+    !admin.whatsapp_no
   ) {
     return res.status(400).json({
-      ok: false,
-      error: "Missing Student Property",
+      messsage: "Missing Student Property",
     });
   }
 
@@ -41,75 +30,29 @@ async function httpInsertAdmin(req, res) {
 
     const basic = await insertAdmin(admin);
 
-    return res.status(201).json({ ok: true, data: basic });
+    return res.status(201).json(basic);
   } catch (error) {
     return res.status(500).json({
-      ok: false,
       error: error.message,
     });
   }
 }
 
 async function httpGetadmin(req, res) {
-  const token = req.headers.authorization;
+  const id = req.params.id;
 
+  console.log(req.params.id);
   try {
-    const username = await verifyToken(token);
-    const admin = await getAdminByUser(username.userID);
+    const admin = await getAdminByid(id);
 
-    if (admin) {
-      res.status(200).json({
-        ok: true,
-        data: admin,
-      });
-    } else {
-      res.status(400).json({
-        ok: false,
-        error: "User Not Found",
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      error: error,
-    });
-  }
-}
-
-async function httpChangeByAdmin(req, res) {
-  const { username } = req.body;
-  try {
-    const adminData = await getAdminByUser(username);
-    const result = await changeAdminByUsername(username, {
-      is_super_admin: !adminData.is_super_admin,
-    });
-    return res.status(200).send(result);
-  } catch (error) {
-    res.status(400).send(error.message);
-  }
-}
-
-async function httpSetDefault(req, res) {
-  const { username } = req.body;
-  console.log(req.body);
-  console.log("username", username);
-  const password = "admin";
-
-  try {
-    const hasedPassword = await bcrypt.hash(password, 10);
-    const result = await changeAdminByUsername(username, {
-      password: hasedPassword,
-    });
-    return res.status(200).send(result);
-  } catch (error) {
-    res.status(400).send(error.message);
-  }
+    res.status(200).json(admin);
+  } catch (error) {}
 }
 
 async function httpLoginRequest(req, res) {
   const loginData = req.body;
   if (!loginData.username || !loginData.password) {
-    return res.status(400).json({ ok: false, error: "Please Enter Value" });
+    return res.status(400).json({ message: "Please Enter Value" });
   }
 
   try {
@@ -117,73 +60,34 @@ async function httpLoginRequest(req, res) {
 
     if (!adminData) {
       return res.status(400).json({
-        ok: false,
         error: "User Not found",
       });
     }
 
-    if (await bcrypt.compare(loginData.password, adminData.password)) {
-      const token = await createToken(loginData.username);
-      return res
-        .status(200)
-        .json({ ok: true, success: "Login succesfully", token: token });
-    } else {
-      return res.status(400).json({ ok: false, error: "Incorrect Password" });
-    }
-  } catch (error) {
-    return res.json({ ok: false, error: `${error}` });
-  }
-}
-async function httpVerifySuperAdmin(req, res) {
-  const superAdminData = req.body;
-  if (!superAdminData.username || !superAdminData.password) {
-    return res.status(400).json({ message: "Please Enter Value" });
-  }
-
-  try {
-    const superAdminDetails = await getAdminByUsername(superAdminData.username);
-
-    if (!superAdminDetails) {
-      return res.status(400).json({
-        error: "Invalid username or Password",
-      });
-    }
-
-    if(superAdminDetails.is_super_admin == 0){
-      return res.status(400).json({
-        error: "Only Super Admin Can Edit",
-      });
-    }
-
   
-    if (await bcrypt.compare(superAdminData.password, superAdminDetails.password)) {
-      return res.status(200).json({ success: "verified" });
+    if (await bcrypt.compare(loginData.password, adminData.password)) {
+      return res.status(200).json({ success: "Login succesfully" });
     } else {
-      return res.status(400).json({ error: "Invalid username or Password" });
+      return res.status(400).json({ Error: "Incorrect Password" });
     }
   } catch (error) {
     return res.json({ error: `${error}` });
   }
 }
 
-
-
 async function httpUpdateAdmin(req, res) {
-  const token = req.headers.authorization;
-  const data = req.body;
-  if (!token) {
+  const { _id, ...data } = req.body;
+
+  console.log(data);
+  if (!_id) {
     return res.status(400).json({
-      ok: false,
-      false: "Enter Valid Data",
+      message: "Enter Valid Data",
     });
   }
   try {
-    const username = await verifyToken(token);
-
-    const result = await updateAdminById(username.userID, data);
-    console.log(result);  
+    const result = await updateAdminById(_id, data);
     res.status(200).json({
-      ok: true,
+      success: true,
       data: result,
     });
   } catch (e) {
@@ -193,61 +97,9 @@ async function httpUpdateAdmin(req, res) {
   }
 }
 
-async function httpChangePassword(req, res) {
-  const data = req.body;
-  const token = req.headers.authorization;
-
-  if (!data.oldpassword || !data.newpassword || !data.confirmpassword) {
-    return res.status(400).send("All Field Requird");
-  }
-
-  if (data.newpassword !== data.confirmpassword) {
-    return res.status(400).send("Password Did not match");
-  }
-
-  try {
-    const username = await verifyToken(token);
-    const admin = await getAdminByUsername(username.userID);
-
-    if (admin) {
-      const hasedOldpassword = await bcrypt.hash(data.oldpassword, 10);
-      if (await bcrypt.compare(data.oldpassword, admin.password)) {
-        const hasedPassword = await bcrypt.hash(data.newpassword, 10);
-        try {
-          const result = ChangePassowrdByUsername(
-            username.userID,
-            hasedPassword
-          );
-          return res.status(200).json(result);
-        } catch (error) {
-          return res.status(500).send(error.message);
-        }
-      } else {
-        return res.status(400).send("Wrong Old Password");
-      }
-    }
-  } catch (error) {
-    return res.status(500).send(error?.message);
-  }
-}
-
-async function httpGetAllAdmin(req, res) {
-  try {
-    const adminData = await getAllAdmin();
-    res.status(200).json(adminData);
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-}
-
 module.exports = {
   httpInsertAdmin,
-  httpChangePassword,
   httpLoginRequest,
-  httpChangeByAdmin,
   httpGetadmin,
-  httpGetAllAdmin,
   httpUpdateAdmin,
-  httpVerifySuperAdmin
-  httpSetDefault,
 };

@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const academic = new mongoose.Schema({
   school_name: {
     type: String,
+    required: [true, "Please enter school name"],
   },
   class_id: {
     type: mongoose.Schema.ObjectId,

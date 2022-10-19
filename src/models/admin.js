@@ -1,7 +1,7 @@
 require("../database/databaseConn");
 const bcrypt = require("bcrypt");
 
-const mongoose = require("mongoose");   
+const mongoose = require("mongoose");
 
 const admin = new mongoose.Schema({
     username:{
@@ -12,7 +12,7 @@ const admin = new mongoose.Schema({
     password:{
         type: String,
         required: [true, 'Please enter password'],
-        select: false,  
+        select: false,
     },
     staff_id:{
         type: mongoose.Schema.ObjectId,
@@ -37,5 +37,4 @@ const admin = new mongoose.Schema({
 admin.methods.checkPassoword = async function (password) {
   console.log(password);
 };
-
 module.exports = mongoose.model("admins", admin);
