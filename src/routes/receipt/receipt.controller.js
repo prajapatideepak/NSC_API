@@ -16,7 +16,7 @@ const bcrypt = require('bcrypt');
 //------------------ GENERATE STUDENT RECEIPT -----------------
 //-------------------------------------------------------------
 const generateReceiptFunction = async (student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin)=>{
-    const admin_details = await Admin.findById(admin_id)
+    const admin_details = await Admin.findById("632ea4f164fd9d161a5283e1")
 
         // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
 
@@ -72,6 +72,7 @@ const generateReceiptFunction = async (student_id, is_by_cash, is_by_cheque, is_
 
         return fees_receipt_details;
 }
+
 async function generateStudentReceipt(req, res, next) {
     try{
         const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin} = req.body;
@@ -373,7 +374,7 @@ async function searchReceipt(req, res, next){
                                                         foreignField: '_id',
                                                         as: 'admin'
                                                     }
-                                                }
+                                                },
                                             ]
                                         } 
                                     }
@@ -402,7 +403,7 @@ async function searchReceipt(req, res, next){
 
             //Finding receipts from receipt_id
             let receipts;
-            if(item.academics[0].fees[0].fees_receipt[0] && !isNaN(receipt_params)){
+            if(item?.academics[0]?.fees[0]?.fees_receipt[0] && !isNaN(receipt_params)){
                 receipts = item.academics[0].fees[0].fees_receipt.filter((item)=>{
                     if(item.fees_receipt_id == receipt_params){
                         isReceiptFound = true;
@@ -457,6 +458,14 @@ async function searchReceipt(req, res, next){
                         },
                         {
                             $lookup:{
+                                from: "admins",
+                                localField: "admin_id",
+                                foreignField: "_id",
+                                as: "admin"
+                            },
+                        },
+                        {
+                            $lookup:{
                                 from: "hourly_salarys",
                                 localField: "_id",
                                 foreignField: "salary_receipt_id",
@@ -492,7 +501,7 @@ async function searchReceipt(req, res, next){
 
             //Finding receipts from receipt_id
             let receipts;
-            if(item.salary_receipt[0] && !isNaN(receipt_params)){
+            if(item?.salary_receipt[0] && !isNaN(receipt_params)){
                 receipts = item.salary_receipt.filter((item)=>{
                     if(item.salary_receipt_id == receipt_params){
                         isReceiptFound = true;
@@ -507,7 +516,6 @@ async function searchReceipt(req, res, next){
             }
 
             return isStaffNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params;
-
         });
 
         if(!staff_data[0] && !student_data[0]){

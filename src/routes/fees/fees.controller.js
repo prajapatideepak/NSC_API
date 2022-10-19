@@ -13,6 +13,7 @@ const {generateReceiptFunction} = require('../receipt/receipt.controller')
 
 async function getAllPendingStudentsFees(req, res, next) {
   try {
+    const is_primary = req.params.is_primary;
     let pending_students = await Academic.find()
       .populate({
         path: "student_id",
@@ -28,6 +29,7 @@ async function getAllPendingStudentsFees(req, res, next) {
           "-_id class_name medium stream batch_start_year batch_end_year is_active",
         match: {
           is_active: 1,
+          is_primary
         },
       })
       .populate({

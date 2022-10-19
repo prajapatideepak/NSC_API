@@ -3,7 +3,7 @@ const { getAllPendingStudentsFees, studentFeesHistory, studentAllAcademicDetails
 
 const feesRouter = express.Router();
 
-feesRouter.get("/pending", getAllPendingStudentsFees);
+feesRouter.get("/pending/:is_primary", getAllPendingStudentsFees);
 
 //feesRouter.get("/student/:student_id", getStudentFeesDetails);
 

@@ -3,9 +3,6 @@ const {registerStudent, getStudentDetails, getStudentDetailsUniversal, updateStu
 
 const studentRouter = express.Router();
 
-
-// studentRouter.get("/", getAllStudents);
-
 studentRouter.post("/register", registerStudent);
 
 studentRouter.get("/details/:id_name_whatsapp", getStudentDetails);
