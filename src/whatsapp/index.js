@@ -7,10 +7,6 @@ const { Client, LocalAuth } = require("whatsapp-web.js");
 const SESSION_FILE_PATH = "./session.json";
 
 // Load the session data if it has been previously saved
-let sessionData;
-if (fs.existsSync(SESSION_FILE_PATH)) {
-  sessionData = require(SESSION_FILE_PATH);
-} 
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -24,7 +20,7 @@ client.on("ready", async () => {
   console.log("Client is ready!");
   const chat = await client.getChats();
 
-    client.sendMessage("916352201170@c.us", "Hello  Your Whatsapp is Hacked");
+  client.sendMessage("916352201170@c.us", "Hello  Your Whatsapp is Hacked");
 
   console.log(chat[0]);
 });

@@ -96,7 +96,6 @@ async function httpSetDefault(req, res) {
 
   try {
     const hasedPassword = await bcrypt.hash(password, 10);
-
     const result = await changeAdminByUsername(username, {
       password: hasedPassword,
     });
@@ -136,16 +135,19 @@ async function httpLoginRequest(req, res) {
 }
 
 async function httpUpdateAdmin(req, res) {
-  const { _id, ...data } = req.body;
-  
-  if (!_id) {
+  const token = req.headers.authorization;
+  const data = req.body;
+  if (!token) {
     return res.status(400).json({
       ok: false,
       false: "Enter Valid Data",
     });
   }
   try {
-    const result = await updateAdminById(_id, data);
+    const username = await verifyToken(token);
+
+    const result = await updateAdminById(username.userID, data);
+    console.log(result);  
     res.status(200).json({
       ok: true,
       data: result,

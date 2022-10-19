@@ -1,4 +1,5 @@
 const express = require("express");
+const { handleFunction } = require("../../whatsapp/test");
 const {
   httpInsertAdmin,
   httpLoginRequest,
@@ -20,5 +21,5 @@ adminRouter.post("/login", httpLoginRequest);
 adminRouter.put("/forgot", httpChangePassword);
 adminRouter.put("/change", httpChangeByAdmin);
 adminRouter.post("/default", httpSetDefault);
-// adminRouter.put("/",())
+
 module.exports = adminRouter;

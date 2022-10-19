@@ -2,7 +2,8 @@ const admin = require("../models/admin");
 const staff = require("../models/staff");
 const BasicInfo = require("../models/basicInfo");
 const ContactInfo = require("../models/contactInfo");
-const { populate } = require("../models/admin");
+const { populate, findOne, findOneAndUpdate } = require("../models/admin");
+const basicInfo = require("../models/basicInfo");
 
 async function insertAdmin(body) {
   const basic_info_id = await BasicInfo.create({
@@ -45,10 +46,34 @@ async function getAdminByUsername(u) {
   return adminData;
 }
 
-async function updateAdminById(_id, data) {
-  const result = await admin.findOneAndUpdate({ id: _id }, data);
+async function updateAdminById(userID, data) {
+  console.log(data);
+  const { basic_info_id, contact_info_id } = data;
+  const admins = await admin
+    .findOne({ username: data.username })
+    .populate("staff_id");
 
-  return result;
+  const upateAdmin = await admin.findOneAndUpdate(
+    { username: data.username },
+    { security_pin: data.security_pin }
+  );
+
+  const updateBasicInfo = await BasicInfo.findOneAndUpdate(
+    { _id: admins.staff_id.basic_info_id },
+    { full_name: basic_info_id.full_name }
+  );
+
+  const updateContactInfo = await ContactInfo.findOneAndUpdate(
+    { _id: admins.staff_id.contact_info_id },
+    {
+      email: contact_info_id.email,
+      whatsapp_no: contact_info_id.whatsapp_no,
+      alternative_no: contact_info_id.alternative_no,
+      address: contact_info_id.address,
+    }
+  );
+
+  return updateBasicInfo;
 }
 
 async function getAdminByid(id) {
@@ -74,13 +99,11 @@ async function ChangePassowrdByUsername(username, hasedPassword) {
     { username: username },
     { password: hasedPassword }
   );
-
   return result;
 }
 
 async function changeAdminByUsername(username, data) {
   const result = await admin.findOneAndUpdate({ username: username }, data);
-
   return result;
 }
 
