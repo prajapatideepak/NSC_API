@@ -6,6 +6,8 @@ const salary_receipt = require('../../models/salaryReceipt');
 const hourly_salary = require("../../models/hourlySalary");
 const monthly_salary = require("../../models/monthlySalary")
 const admin = require("../../models/admin")
+const formidable = require('formidable');
+const fs = require('fs');
 
 const { default: mongoose } = require('mongoose');
 
@@ -14,37 +16,73 @@ const { default: mongoose } = require('mongoose');
 // --------------------------------------------------------
 async function registerFaculty(req, res) {
   try {
-    const { photo, full_name, whatsapp_no, alternate_no, dob, gender, address, email, joining_date, role } = req.body;
-    console.log(req.body)
 
-    const basic_info_id = await BasicInfo.create({
-      photo,
-      full_name,
-      gender,
-      dob
+    // ------------------------------------------------------------------------------------
+    // --------------------------IMAGE UPLOAD ---------------------------------------------
+    // ------------------------------------------------------------------------------------
+
+
+    const form = new formidable.IncomingForm();
+    form.parse(req, async function (err, fields, files) {
+      console.log(fields, files)
+      let photo = '';
+      console.log('ok out')
+      if (files.photo.originalFilename != '' && files.photo.size != 0) {
+        console.log("ok")
+        const ext = files.photo.mimetype.split('/')[1].trim();
+
+        if (files.photo.size >= 2000000) { // 2000000(bytes) = 2MB
+          return res.status(400).json({ success: false, message: 'Photo size should be less than 2MB' })
+        }
+        if (ext != "png" && ext != "jpg" && ext != "jpeg") {
+          return res.status(400).json({ success: false, message: 'Only JPG, JPEG or PNG photo is allowed' })
+        }
+
+        var oldPath = files.photo.filepath;
+        var fileName = Date.now() + '_' + files.photo.originalFilename;
+        var newPath = 'public/images' + '/' + fileName;
+        var rawData = fs.readFileSync(oldPath)
+
+        fs.writeFile(newPath, rawData, function (err) {
+          if (err) {
+            return res.status(500).json({ success: false, message: err.message })
+          }
+          photo = fileName.trim();
+        })
+      }
+
+      const {full_name, whatsapp_no, alternate_no, dob, gender, address, email, joining_date, role } = fields;
+  
+      const basic_info_id = await BasicInfo.create({
+        photo,
+        full_name,
+        gender,
+        dob
+      })
+  
+      const contact_info_id = await ContactInfo.create({
+        whatsapp_no,
+        alternate_no,
+        email,
+        address,
+        joining_date
+      })
+  
+      const Staff = await staffs.create({
+        basic_info_id: basic_info_id._id,
+        contact_info_id: contact_info_id._id,
+        joining_date,
+        role
+      });
+  
+  
+      res.status(201).json({
+        success: true,
+        data: Staff,
+        message: "Successfully regiser"
+      });
+
     })
-
-    const contact_info_id = await ContactInfo.create({
-      whatsapp_no,
-      alternate_no,
-      email,
-      address,
-      joining_date
-    })
-
-    const Staff = await staffs.create({
-      basic_info_id: basic_info_id._id,
-      contact_info_id: contact_info_id._id,
-      joining_date,
-      role
-    });
-
-
-    res.status(201).json({
-      success: true,
-      data: Staff,
-      message: "Successfully regiser"
-    });
 
 
   } catch (error) {
