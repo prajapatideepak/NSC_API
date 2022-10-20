@@ -17,6 +17,7 @@ async function registerStudent(req, res, next){
     const form = new formidable.IncomingForm();
     form.parse(req, async function(err, fields, files){
       let photo = '';
+
       if(files.photo.originalFilename != '' && files.photo.size != 0){
         const ext = files.photo.mimetype.split('/')[1].trim();
 
@@ -338,8 +339,14 @@ async function updateStudentDetails(req, res, next){
 
     const form = new formidable.IncomingForm();
     form.parse(req, async function(err, fields, files){
+      
+      if(err){
+        return res.status(500).json({success: false, message: err.message})
+      }
+
       let photo = '';
-      if(files.photo.originalFilename != '' && files.photo.size != 0){
+      
+      if(files.photo.originalFilename != '' && files.photo.size != 0 && fields.photo_name == ''){
         const ext = files.photo.mimetype.split('/')[1].trim();
 
         if(files.photo.size >= 2000000){ // 2000000(bytes) = 2MB
@@ -362,10 +369,13 @@ async function updateStudentDetails(req, res, next){
         })
       }
       
-      const {full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, discount, reference, net_fees, note, school_name} = fields; 
+      const {full_name, mother_name, whatsapp_no, alternate_no, dob, gender, address, email, reference, note, school_name} = fields; 
+
+      total_fees = Number(fields.total_fees);
+      discount = Number(fields.discount);
+
       const student_id = req.params.student_id;
-      
-  
+            
       //updating student info
       const student = await Student.findOneAndUpdate({student_id},{
         mother_name: mother_name.trim(),
@@ -374,8 +384,9 @@ async function updateStudentDetails(req, res, next){
       });
       
       //updating basic info
-      if(photo==''){
+      if((fields.photo_name == '' && photo != '') || (fields.photo_name == 'user_default@123.png' && photo == '')){
         await BasicInfo.findByIdAndUpdate(student.basic_info_id,{
+          photo,
           full_name: full_name.trim(),
           gender,
           dob
@@ -383,7 +394,6 @@ async function updateStudentDetails(req, res, next){
       }
       else{
         await BasicInfo.findByIdAndUpdate(student.basic_info_id,{
-          photo,
           full_name: full_name.trim(),
           gender,
           dob
@@ -418,7 +428,8 @@ async function updateStudentDetails(req, res, next){
         totalFeesPaid = totalFeesPaid + data.transaction_id.amount;
       })
       //---------------------------------------------------------
-  
+      
+      const net_fees = total_fees - discount;
       //updating fees
       const fees = await Fees.findByIdAndUpdate(academic.fees_id,{
         discount: (discount != '' && discount != null) ? discount : 0,
