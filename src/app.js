@@ -24,5 +24,5 @@ app.use("/report", reportRouter);
 
 app.use("/faculty", facultyRouter);
 app.use("/salary", SalaryRouter);
-
+app.use("/mail", mailRouter);
 module.exports = app;
