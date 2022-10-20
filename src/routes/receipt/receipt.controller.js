@@ -15,17 +15,14 @@ const bcrypt = require('bcrypt');
 //-------------------------------------------------------------
 //------------------ GENERATE STUDENT RECEIPT -----------------
 //-------------------------------------------------------------
-async function generateStudentReceipt(req, res) {
-    try{
-        const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_username, admin_security_pin} = req.body;
+const generateReceiptFunction = async (student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin)=>{
+    const admin_details = await Admin.findById("632ea4f164fd9d161a5283e1")
 
-        const admin_details = await Admin.findOne({username: admin_username})
-        const isMatch = 1
-        //await bcrypt.compare(admin_security_pin, admin_details.security_pin);
+        // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
 
-        if(!isMatch) {
-            return res.status(200).json({status: false, message: 'Incorrect security pin'});
-        }
+        // if(!isMatch) {
+        //     return false;
+        // }
 
         const student_details = await Student.findOne({student_id});
 
@@ -49,12 +46,12 @@ async function generateStudentReceipt(req, res) {
 
         const net_amount = amount - discount;
 
-        const transaction_details = await Transaction.create({
-            is_by_cash,
+            const transaction_details = await Transaction.create({
+                is_by_cash,
             is_by_cheque,
             is_by_upi,
-            cheque_no: cheque_no ? cheque_no : -1,
-            upi_no: upi_no ? upi_no : "",
+            cheque_no: cheque_no != '' ? cheque_no : -1,
+            upi_no: upi_no != '' ? upi_no : "",
             amount: net_amount,
         })
 
@@ -73,26 +70,39 @@ async function generateStudentReceipt(req, res) {
         //updating pending amount of student in fees table
         await Fees.findOneAndUpdate({_id:academic_details.fees_id}, { $inc: { pending_amount: - amount } });
 
-        res.status(200).json({
-            success: true,
-            message: 'Receipt generated successfully',
-            data: {
-                fees_receipt_details
-            }
-        })
+        return fees_receipt_details;
+}
+
+async function generateStudentReceipt(req, res, next) {
+    try{
+        const {student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin} = req.body;
+        const fees_receipt_details = await generateReceiptFunction(student_id, is_by_cash, is_by_cheque, is_by_upi, amount, discount, cheque_no, upi_no, admin_id, security_pin);
+        
+        if(fees_receipt_details == false){
+            return res.status(200).json({
+                success: false,
+                message: '*Incorrect security pin'
+            });
+        }
+        else{
+            res.status(200).json({
+                success: true,
+                message: 'Receipt generated successfully',
+                data: {
+                    fees_receipt_details
+                }
+            })
+        }
     }
     catch(error){
-        res.status(404).json({
-            success: false,
-            message: error.message,
-        })
+       next(error);
     }
 }
 
 //-------------------------------------------------------------
 //------------------ GENERATE STAFF RECEIPT -------------------
 //-------------------------------------------------------------
-async function generateStaffReceipt(req, res) {
+async function generateStaffReceipt(req, res, next) {
     try{
         const {staff_id, is_by_cash, is_by_cheque, is_by_upi, is_hourly, total_hours, rate_per_hour, cheque_no, upi_no, amount, admin_username, admin_security_pin } = req.body;
 
@@ -100,7 +110,10 @@ async function generateStaffReceipt(req, res) {
         const isMatch = await bcrypt.compare(admin_security_pin, admin_details.security_pin);
 
         if(!isMatch) {
-            return res.status(200).json({status: false, message: 'Incorrect security pin'});
+            return res.status(200).json({
+                success: false,
+                message: 'Incorrect security pin'
+            });
         }
 
         const transaction_details = await Transaction.create({
@@ -148,27 +161,28 @@ async function generateStaffReceipt(req, res) {
         })
     }
     catch(error){
-        res.status(404).json({
-            success: false,
-            message: error.message,
-        })
+        next(error);
     }
 }
 
 //-------------------------------------------------------------
 //-------------------- UPDATE STUDENT RECEIPT -------------------
 //-------------------------------------------------------------
-async function updateStudentReceipt(req, res){
+async function updateStudentReceipt(req, res, next){
     try{
         const fees_receipt_id = req.params.fees_receipt_id;
 
-        const {is_by_cash, is_by_cheque, is_by_upi, cheque_no, upi_no, amount, discount, super_admin_username, super_admin_password} = req.body;
+        const {is_by_cash, is_by_cheque, is_by_upi, cheque_no, upi_no, amount, discount, security_pin, admin_id} = req.body;        
 
-        const admin_details = await Admin.findOne({username: super_admin_username, is_super_admin: 1}).select('password');
-        const isMatch = await bcrypt.compare(super_admin_password, admin_details.password);
+        const admin_details = await Admin.findById(admin_id);
+
+        const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
 
         if(!isMatch) {
-            return res.status(200).json({status: false, message: 'Incorret Username or Password'});
+            return res.status(400).json({
+                success: false,
+                message: 'Please enter valid PIN'
+            });
         }
 
         const net_amount = amount - discount;
@@ -200,27 +214,28 @@ async function updateStudentReceipt(req, res){
         });
     }
     catch(error){
-        res.status(404).json({
-            success: false,
-            message: error.message,
-        })
+        next(error);
     }
 }
 
 //-------------------------------------------------------------
 //------------------ UPDATE STAFF RECEIPT -------------------
 //-------------------------------------------------------------
-async function updateStaffReceipt(req, res){
+async function updateStaffReceipt(req, res, next){
     try{
         const salary_receipt_id = req.params.salary_receipt_id;
 
-        const {is_by_cash, is_by_cheque, is_by_upi, total_hours, is_hourly, rate_per_hour, cheque_no, upi_no, amount, super_admin_username, super_admin_password } = req.body;
+        const {is_by_cash, is_by_cheque, is_by_upi, total_hours, is_hourly, rate_per_hour, cheque_no, upi_no, amount, admin_id, security_pin } = req.body;
 
-        const admin_details = await Admin.findOne({username: super_admin_username, is_super_admin: 1}).select('password');
-        const isMatch = await bcrypt.compare(super_admin_password, admin_details.password);
+        const admin_details = await Admin.findById(admin_id);
+
+        const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
         
         if(!isMatch) {
-            return res.status(200).json({status: false, message: 'Incorret Username or Password'});
+            return res.status(200).json({
+                success: false,
+                message: 'Please enter valid PIN'
+            });
         }
 
         const salary_receipt_details = await SalaryReceipt.findOneAndUpdate({salary_receipt_id},{
@@ -274,17 +289,14 @@ async function updateStaffReceipt(req, res){
         })
     }
     catch(error){
-        res.status(404).json({
-            success: false,
-            message: error.message,
-        })
+        next(error);
     }
 }
 
 //-----------------------------------------------------------------------------------
 //------ SEARCH RECEIPT BY RECEIPT ID, STUDENT ID, STUDENT NAME, WHATSAPP NO --------
 //-----------------------------------------------------------------------------------
-async function searchReceipt(req, res){
+async function searchReceipt(req, res, next){
     try{
         let receipt_params = req.params.value;
         let student_receipts = [];
@@ -328,8 +340,6 @@ async function searchReceipt(req, res){
                                     {
                                         $match: {
                                             is_active: 1,
-                                            // $expr:{
-                                            // }
                                         }
                                     }
                                 ]
@@ -347,7 +357,25 @@ async function searchReceipt(req, res){
                                             from: "fees_receipts",
                                             localField: "_id",
                                             foreignField: "fees_id",
-                                            as: "fees_receipt"
+                                            as: "fees_receipt",
+                                            pipeline:[
+                                                {
+                                                    $lookup:{
+                                                        from: 'transactions',
+                                                        localField: 'transaction_id',
+                                                        foreignField: '_id',
+                                                        as: 'transaction'
+                                                    }
+                                                },
+                                                {
+                                                    $lookup:{
+                                                        from: 'admins',
+                                                        localField: 'admin_id',
+                                                        foreignField: '_id',
+                                                        as: 'admin'
+                                                    }
+                                                },
+                                            ]
                                         } 
                                     }
                                 ]
@@ -360,28 +388,36 @@ async function searchReceipt(req, res){
         ]);
 
         student_receipts = student_data.filter( function (item) {
-            const student_full_name = item.basic_info[0].full_name.toLowerCase();
+            const student_full_name = item?.basic_info[0]?.full_name?.toLowerCase();
             let isStudentNameFound = false;
 
             if(isNaN(receipt_params)){
                 receipt_params = receipt_params.toLowerCase();
             }
 
-            if (student_full_name.indexOf(receipt_params) > -1){
+            if (student_full_name?.indexOf(receipt_params) > -1){
                 isStudentNameFound = true;
             }
+            
             let isReceiptFound = false
+
             //Finding receipts from receipt_id
-            if(item.academics[0].fees[0].fees_receipt[0]){
-                item.academics[0].fees[0].fees_receipt.forEach((item)=>{
+            let receipts;
+            if(item?.academics[0]?.fees[0]?.fees_receipt[0] && !isNaN(receipt_params)){
+                receipts = item.academics[0].fees[0].fees_receipt.filter((item)=>{
                     if(item.fees_receipt_id == receipt_params){
                         isReceiptFound = true;
+                        return item;
                     }
                 })
-
             }
 
-            return item.student_id == receipt_params || isStudentNameFound || item.contact_info[0].whatsapp_no == receipt_params || isReceiptFound;
+            if(isReceiptFound){
+                item.academics[0].fees[0].fees_receipt = receipts;
+                return item
+            }
+
+            return (item.student_id == receipt_params || isStudentNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params)
 
         });
 
@@ -422,6 +458,14 @@ async function searchReceipt(req, res){
                         },
                         {
                             $lookup:{
+                                from: "admins",
+                                localField: "admin_id",
+                                foreignField: "_id",
+                                as: "admin"
+                            },
+                        },
+                        {
+                            $lookup:{
                                 from: "hourly_salarys",
                                 localField: "_id",
                                 foreignField: "salary_receipt_id",
@@ -442,35 +486,42 @@ async function searchReceipt(req, res){
         ]);
 
         staff_receipts = staff_data.filter( function (item) {
-            const staff_full_name = item.basic_info[0].full_name.toLowerCase();
+            const staff_full_name = item?.basic_info[0]?.full_name?.toLowerCase();
             let isStaffNameFound = false;
 
             if(isNaN(receipt_params)){
                 receipt_params = receipt_params.toLowerCase();
             }
 
-            if (staff_full_name.indexOf(receipt_params) > -1){
+            if (staff_full_name?.indexOf(receipt_params) > -1){
                 isStaffNameFound = true;
             }
+
             let isReceiptFound = false
+
             //Finding receipts from receipt_id
-            if(item.salary_receipt[0]){
-                item.salary_receipt.forEach((item)=>{
+            let receipts;
+            if(item?.salary_receipt[0] && !isNaN(receipt_params)){
+                receipts = item.salary_receipt.filter((item)=>{
                     if(item.salary_receipt_id == receipt_params){
                         isReceiptFound = true;
+                        return item;
                     }
                 })
-
             }
 
-            return isStaffNameFound || item.contact_info[0].whatsapp_no == receipt_params || isReceiptFound;
+            if(isReceiptFound){
+                item.salary_receipt = receipts;
+                return item
+            }
 
+            return isStaffNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params;
         });
 
         if(!staff_data[0] && !student_data[0]){
-            return res.status(200).json({ 
+            return res.status(200).json({
                 success: false,
-                message:'No Receipt found'
+                message: 'No Receipt found'
             });
         }
 
@@ -479,13 +530,9 @@ async function searchReceipt(req, res){
             student_receipts,
             staff_receipts
         });
-
     }
     catch(error){
-        res.status(404).json({
-            success: false,
-            message: error.message,
-        })
+        next(error);
     }
 }
 
@@ -494,5 +541,6 @@ module.exports = {
     generateStaffReceipt,
     updateStudentReceipt,
     updateStaffReceipt,
-    searchReceipt
+    searchReceipt,
+    generateReceiptFunction
 }
