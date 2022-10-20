@@ -1,7 +1,9 @@
 const express = require("express");
-const {registerStudent, getStudentDetails, getStudentDetailsUniversal, updateStudentDetails, cancelStudentAdmission, transerStudentsToNewClass } = require("./student.controller");
+const {getAllStudents , registerStudent, getStudentDetails, getStudentDetailsUniversal, updateStudentDetails, cancelStudentAdmission, transerStudentsToNewClass } = require("./student.controller");
 
 const studentRouter = express.Router();
+
+studentRouter.get("/", getAllStudents);
 
 studentRouter.post("/register", registerStudent);
 
