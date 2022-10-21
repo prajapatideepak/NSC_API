@@ -5,7 +5,6 @@ const Fees = require('../../models/fees');
 const Academic = require('../../models/academic');
 const Classes = require('../../models/classes');
 const FeesReceipt = require('../../models/feesReceipt');
-const generateReceiptFunction = require('../receipt/receipt.controller');
 const formidable = require('formidable');
 const fs = require('fs');
 
@@ -16,6 +15,9 @@ async function registerStudent(req, res, next){
   try{  
     const form = new formidable.IncomingForm();
     form.parse(req, async function(err, fields, files){
+      if(err){
+        return res.status(500).json({success: false, message: err.message})
+      }
       let photo = '';
 
       if(files.photo.originalFilename != '' && files.photo.size != 0){
@@ -339,7 +341,7 @@ async function updateStudentDetails(req, res, next){
 
     const form = new formidable.IncomingForm();
     form.parse(req, async function(err, fields, files){
-      
+
       if(err){
         return res.status(500).json({success: false, message: err.message})
       }
