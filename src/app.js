@@ -8,6 +8,7 @@ const receiptRouter = require("./routes/receipt/receipt.routes");
 const reportRouter = require("./routes/report/report.route");
 const classesRouter = require("./routes/classes/classes.routes");
 const cors = require("cors");
+const mailRouter = require("./routes/mail/mail.route");
 
 const app = express();
 
@@ -33,6 +34,9 @@ app.use("/report", reportRouter);
 app.use("/faculty", facultyRouter);
 app.use("/salary", SalaryRouter);
 
+app.use("/mail", mailRouter);
+module.exports = app;
+
 app.use((req, res, next) => {
   const err = new Error("Page Not Found");
   err.status = 404;
@@ -43,4 +47,3 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({success: false, message: err.message});
 })
 
-module.exports = app;
