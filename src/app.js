@@ -6,7 +6,7 @@ const feesRouter = require("./routes/fees/fees.routes");
 const studentRouter = require("./routes/students/student.routes");
 const receiptRouter = require("./routes/receipt/receipt.routes");
 const reportRouter = require("./routes/report/report.route");
-
+const mailRouter = require("./routes/mail/mail.route")
 
 const app = express();
 var cors = require('cors')
