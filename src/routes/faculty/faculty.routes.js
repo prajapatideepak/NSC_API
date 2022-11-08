@@ -13,6 +13,4 @@ facultyRouter.post("/update/:id", editFaculty);
 
 facultyRouter.post("/delete/:id", deleteFaculty);
 
-
-
 module.exports = facultyRouter;

@@ -6,10 +6,6 @@ const { populate, findOne, findOneAndUpdate } = require("../models/admin");
 const basicInfo = require("../models/basicInfo");
 
 async function insertAdmin(body) {
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
   const basic_info_id = await BasicInfo.create({
     photo: body.photo,
     full_name: body.full_name,

@@ -7,8 +7,6 @@ const hourly_salary = require("../../models/hourlySalary");
 const monthly_salary = require("../../models/monthlySalary")
 const admin = require("../../models/admin")
 
-const { default: mongoose } = require('mongoose');
-
 async function registerFaculty(req, res) {
   try {
     const { photo, full_name, whatsapp_no, alternate_no, dob, gender, address, email, joining_date} = req.body;
@@ -71,16 +69,10 @@ async function getFaculty(req, res) {
     res.status(200).json({
         success: true,
         data: {
-           
-            staff_details
-
+          staff_details
         }
     });
         
-        
-   
-
-
 
   } catch (error) {
     return res.status(500).send(error.stack);

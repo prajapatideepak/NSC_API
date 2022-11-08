@@ -16,7 +16,7 @@ const adminRouter = express.Router();
 
 adminRouter.put("/", httpUpdateAdmin);
 adminRouter.post("/", httpInsertAdmin);
-adminRouter.get("/:id", httpGetadmin);
+adminRouter.get("/", httpGetadmin);
 adminRouter.post("/login", httpLoginRequest);
 adminRouter.post("/verify", httpVerifySuperAdmin);
 adminRouter.get("/all", httpGetAllAdmin);
