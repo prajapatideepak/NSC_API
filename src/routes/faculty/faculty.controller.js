@@ -24,11 +24,8 @@ async function registerFaculty(req, res) {
 
     const form = new formidable.IncomingForm();
     form.parse(req, async function (err, fields, files) {
-      console.log(fields, files)
       let photo = '';
-      console.log('ok out')
       if (files.photo.originalFilename != '' && files.photo.size != 0) {
-        console.log("ok")
         const ext = files.photo.mimetype.split('/')[1].trim();
 
         if (files.photo.size >= 2000000) { // 2000000(bytes) = 2MB
@@ -50,16 +47,17 @@ async function registerFaculty(req, res) {
           photo = fileName.trim();
         })
       }
+      // console.log(photo , "file")
 
-      const {full_name, whatsapp_no, alternate_no, dob, gender, address, email, joining_date, role } = fields;
-  
+      const { full_name, whatsapp_no, alternate_no, dob, gender, address, email, joining_date, role } = fields;
+
       const basic_info_id = await BasicInfo.create({
-        photo,
+        photo ,
         full_name,
         gender,
         dob
       })
-  
+
       const contact_info_id = await ContactInfo.create({
         whatsapp_no,
         alternate_no,
@@ -67,18 +65,17 @@ async function registerFaculty(req, res) {
         address,
         joining_date
       })
-  
+
       const Staff = await staffs.create({
         basic_info_id: basic_info_id._id,
         contact_info_id: contact_info_id._id,
         joining_date,
         role
       });
-  
-  
+
       res.status(201).json({
         success: true,
-        data: Staff,
+        data: Staff , basic_info_id,
         message: "Successfully regiser"
       });
 
@@ -86,7 +83,6 @@ async function registerFaculty(req, res) {
 
 
   } catch (error) {
-    //500 = internal server error
     res.status(500).json({
       success: false,
       message: error.message

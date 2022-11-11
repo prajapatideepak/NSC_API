@@ -114,8 +114,14 @@ async function registerStudent(req, res) {
 //-------------------------------------------------------------
 async function getAllStudents(req, res) {
     try {
-      const academicID = await Academic.find().populate('class_id').populate({ path: "student_id", populate: ["basic_info_id", "contact_info_id"] }).populate('fees_id')
 
+      const is_primary = req.body
+      const academicID = await Academic.find()
+      .populate('class_id')
+      .populate({ path: "student_id", populate: ["basic_info_id", "contact_info_id"] })
+      .populate('fees_id')
+
+      
       if (!academicID[0]) {
         return res.status(200).json({
           success: false,
@@ -128,6 +134,7 @@ async function getAllStudents(req, res) {
         data: academicID,
         message: "Display successfully"
       })
+      
     } catch (error) {
       res.status(400).json({
         success: false,
