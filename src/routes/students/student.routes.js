@@ -3,7 +3,7 @@ const {getAllStudents , registerStudent, getStudentDetails, getStudentDetailsUni
 
 const studentRouter = express.Router();
 
-studentRouter.get("/", getAllStudents);
+studentRouter.post("/", getAllStudents);
 
 studentRouter.post("/register", registerStudent);
 

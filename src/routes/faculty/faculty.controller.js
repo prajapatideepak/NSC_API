@@ -35,6 +35,7 @@ async function registerFaculty(req, res) {
           return res.status(400).json({ success: false, message: 'Only JPG, JPEG or PNG photo is allowed' })
         }
 
+        console.log(files.photo.originalFilename)
         var oldPath = files.photo.filepath;
         var fileName = Date.now() + '_' + files.photo.originalFilename;
         var newPath = 'public/images' + '/' + fileName;
@@ -44,6 +45,7 @@ async function registerFaculty(req, res) {
           if (err) {
             return res.status(500).json({ success: false, message: err.message })
           }
+          console.log(fileName)
           photo = fileName.trim();
         })
       }

@@ -116,22 +116,69 @@ async function getAllStudents(req, res) {
     try {
 
       const is_primary = req.body
-      const academicID = await Academic.find()
-      .populate('class_id')
-      .populate({ path: "student_id", populate: ["basic_info_id", "contact_info_id"] })
-      .populate('fees_id')
+      console.log(req.body, "is_primary")
 
-      
-      if (!academicID[0]) {
-        return res.status(200).json({
-          success: false,
-          message: "Students not found"
-        })
-      }
-
+      let student_data = await Student.aggregate([
+        {$match:{is_cancelled: 0}},
+        {
+            $lookup:{
+                from: "basic_infos",
+                localField: "basic_info_id",
+                foreignField: "_id",
+                as: "basic_info"
+            }
+        },
+        {
+            $lookup:{
+                from: "contact_infos",
+                localField: "contact_info_id",
+                foreignField: "_id",
+                as: "contact_info"
+            },
+        },
+        {
+            $lookup:{
+                from: "academics",
+                localField: "_id",
+                foreignField: "student_id",
+                as: "academics",
+                let:{class_id: 'class_id'},
+                pipeline:[
+                    { $limit: 1 },
+                    {
+                        $lookup:{
+                            from: "classes",
+                            localField: "class_id",
+                            foreignField: "_id",
+                            as: "class",
+                            // pipeline:[
+                            //     {
+                            //         $match: {
+                            //             is_active: 1, 
+                            //             is_primary : is_primary == '0' ? 0 : 1
+                            //             // $expr:{
+                            //             // }
+                            //         }
+                            //     }
+                            // ]
+                        },
+                    },
+                    {
+                        $lookup:{
+                            from: "fees",
+                            localField: "fees_id",
+                            foreignField: "_id",
+                            as: "fees"
+                        }
+                        
+                    }
+                ]
+            },
+        }
+    ]);
       res.status(200).json({
         success: true,
-        data: academicID,
+        data: student_data,
         message: "Display successfully"
       })
       
