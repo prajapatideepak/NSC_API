@@ -32,8 +32,8 @@ async function insertadmin(body) {
     is_super_admin: body.is_super_admin,
     security_pin: body.security_pin,
   });
-
-  return adminData;
+  console.log(admindata);
+  return admindata;
 }
 
 async function getAdminByUsername(u) {
