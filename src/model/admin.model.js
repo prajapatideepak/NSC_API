@@ -1,19 +1,18 @@
 const admin = require("../models/admin");
 const staff = require("../models/staff");
-const BasicInfo = require("../models/basicInfo");
-const ContactInfo = require("../models/contactInfo");
-const { populate, findOne, findOneAndUpdate } = require("../models/admin");
-const basicInfo = require("../models/basicInfo");
+const contactinfo = require("../models/contactinfo");
+const { populate, findone, findoneandupdate } = require("../models/admin");
+const basicinfo = require("../models/basicinfo");
 
-async function insertAdmin(body) {
-  const basic_info_id = await BasicInfo.create({
+async function insertadmin(body) {
+  const basic_info_id = await basicinfo.create({
     photo: body.photo,
     full_name: body.full_name,
     gender: body.gender,
     dob: body.dob,
   });
 
-  const contact_info_id = await ContactInfo.create({
+  const contact_info_id = await contactinfo.create({
     whatsapp_no: body.whatsapp_no,
     alternative_no: body.alternative_no,
     email: body.email,
@@ -26,7 +25,7 @@ async function insertAdmin(body) {
     joining_date: new Date(),
   });
 
-  const adminData = await admin.create({
+  const admindata = await admin.create({
     username: body.username,
     password: body.password,
     staff_id: staff_info_id._id,
@@ -41,6 +40,7 @@ async function getAdminByUsername(u) {
   const adminData = await admin
     .findOne({ username: u })
     .select("password")
+    .select("is_super_admin")
     .exec();
 
   return adminData;
@@ -58,12 +58,12 @@ async function updateAdminById(userID, data) {
     { security_pin: data.security_pin }
   );
 
-  const updateBasicInfo = await BasicInfo.findOneAndUpdate(
+  const updateBasicInfo = await basicinfo.findOneAndUpdate(
     { _id: admins.staff_id.basic_info_id },
     { full_name: basic_info_id.full_name }
   );
 
-  const updateContactInfo = await ContactInfo.findOneAndUpdate(
+  const updateContactInfo = await contactinfo.findOneAndUpdate(
     { _id: admins.staff_id.contact_info_id },
     {
       email: contact_info_id.email,
@@ -83,13 +83,13 @@ async function getAdminByid(id) {
 }
 
 async function getAdminByUser(u) {
-  const adminData = await admin
-    .findOne({ username: u })
-    .populate({
-      path: "staff_id",
-      populate: ["basic_info_id", "contact_info_id"],
-    })
-    .exec();
+  console.log(u);
+  const adminData = await admin.findOne({ username: u }).populate({
+    path: "staff_id",
+    populate: ["basic_info_id", "contact_info_id"],
+  });
+
+  console.log(adminData);
 
   return adminData;
 }
@@ -120,10 +120,10 @@ async function getAllAdmin() {
 }
 
 module.exports = {
-  insertAdmin,
   ChangePassowrdByUsername,
   getAdminByUsername,
   updateAdminById,
+  insertadmin,
   getAdminByUser,
   getAllAdmin,
   getAdminByid,

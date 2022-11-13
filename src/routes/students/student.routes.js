@@ -1,17 +1,17 @@
 const express = require("express");
-const {registerStudent, getStudentDetails, getStudentDetailsUniversal, updateStudentDetails, cancelStudentAdmission, transerStudentsToNewClass } = require("./student.controller");
+const {registerStudent, getAllStudents, getStudentDetails, getStudentDetailsUniversal, updateStudentDetails, cancelStudentAdmission, transerStudentsToNewClass } = require("./student.controller");
 
 const studentRouter = express.Router();
 
-// studentRouter.get("/", getAllStudents);
-
 studentRouter.post("/register", registerStudent);
+
+studentRouter.get("/", getAllStudents);
 
 studentRouter.get("/details/:id_name_whatsapp", getStudentDetails);
 
 studentRouter.get("/details/universal/:id_name_whatsapp", getStudentDetailsUniversal);
 
-studentRouter.post("/update", updateStudentDetails);
+studentRouter.put("/update/:student_id", updateStudentDetails);
 
 studentRouter.get("/cancel-admission/:student_id", cancelStudentAdmission);
 
