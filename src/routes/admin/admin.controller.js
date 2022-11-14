@@ -1,5 +1,5 @@
 const {
-  insertAdmin,
+  insertadmin,
   getAdminByUsername,
   updateAdminById,
   getAdminByid,
@@ -38,7 +38,7 @@ async function httpInsertAdmin(req, res) {
 
     admin.password = hasedPassword;
 
-    const basic = await insertAdmin(admin);
+    const basic = await insertadmin(admin);
 
     return res.status(201).json({ ok: true, data: basic });
   } catch (error) {
@@ -70,7 +70,7 @@ async function httpGetadmin(req, res) {
   } catch (error) {
     res.status(500).json({
       ok: false,
-      error: error,
+      error: error.message,
     });
   }
 }
@@ -148,14 +148,15 @@ async function httpVerifySuperAdmin(req, res) {
       });
     }
 
-    if(superAdminDetails.is_super_admin == 0){
+    if (superAdminDetails.is_super_admin == 0) {
       return res.status(400).json({
         error: "Only Super Admin Can Edit",
       });
     }
 
-  
-    if (await bcrypt.compare(superAdminData.password, superAdminDetails.password)) {
+    if (
+      await bcrypt.compare(superAdminData.password, superAdminDetails.password)
+    ) {
       return res.status(200).json({ success: "verified" });
     } else {
       return res.status(400).json({ error: "Invalid username or Password" });
@@ -180,7 +181,7 @@ async function httpUpdateAdmin(req, res) {
     const username = await verifyToken(token);
 
     const result = await updateAdminById(username.userID, data);
-    console.log(result);  
+    console.log(result);
     res.status(200).json({
       ok: true,
       data: result,
@@ -248,5 +249,5 @@ module.exports = {
   httpGetAllAdmin,
   httpUpdateAdmin,
   httpVerifySuperAdmin,
-  httpSetDefault
+  httpSetDefault,
 };
