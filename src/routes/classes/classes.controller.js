@@ -49,6 +49,60 @@ exports.createNewClass = async (req, res, next) => {
 };
 
 //------------------------------------//
+//----------Get All classes-----------//
+//------------------------------------//
+exports.getAllClasses = async(req,res)=>{
+    try {
+        const classes = await Classes.find()
+
+        if(!classes[0]){
+            return res.status(200).json({
+                success:false,
+                message:"Classes not found"
+            }) 
+        }
+
+        res.status(200).json({
+            success:true,
+            data:classes,
+            message:"Display successfully"
+        })
+    } catch (error) {
+        res.status(400).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+//------------------------------------//
+//----------Get All classes By Year-----------//
+//------------------------------------//
+exports.getAllClassesByYear = async(req,res)=>{
+    try {
+        const classes = await Classes.aggregate([{$group:{_id:{batch_start_year:'$batch_start_year',batch_end_year:'$batch_end_year'}}},{$sort:{batch_start_year: -1}}])
+        
+        if(!classes[0]){
+            return res.status(200).json({
+                success:false,
+                message:"Classes not found"
+            }) 
+        }
+
+        res.status(200).json({
+            success:true,
+            data:classes,
+            message:"Display successfully"
+        })
+    } catch (error) {
+        res.status(400).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+//------------------------------------//
 //----------Display classes-----------//
 //------------------------------------//
 exports.displayClass = async (req, res, next) => {
