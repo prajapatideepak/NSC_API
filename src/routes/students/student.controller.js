@@ -199,6 +199,34 @@ async function getAllStudents(req, res) {
   }
 }
 
+//-------------------------------------------------------------
+//---------------- GET ALL STUDENT OF ALL CLASS ---------------
+//-------------------------------------------------------------
+async function getAllStudents(req, res) {
+    try {
+      const academicID = await Academic.find().populate('class_id').populate({ path: "student_id", populate: ["basic_info_id", "contact_info_id"] }).populate('fees_id')
+
+      if (!academicID[0]) {
+        return res.status(200).json({
+          success: false,
+          message: "Students not found"
+        })
+      }
+
+      res.status(200).json({
+        success: true,
+        data: academicID,
+        message: "Display successfully"
+      })
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: error.message
+      })
+    }
+
+}
+
 //----------------------------------------------------------------------
 //-- GETTING PARTICULAR STUDENT DETAILS BY ID, FULLNAME, WHATSAPP_NO ---
 //----------------------------------------------------------------------
@@ -254,7 +282,6 @@ async function getStudentDetails(req, res, next) {
             is_active: 1,
           },
         });
-
         //Getting fees details
         const fees_details = await Fees.findById(academic_details.fees_id);
 

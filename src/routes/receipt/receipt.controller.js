@@ -599,32 +599,31 @@ async function searchReceipt(req, res, next) {
         receipt_params = receipt_params.toLowerCase();
       }
 
-      if (staff_full_name?.indexOf(receipt_params) > -1) {
+      if (staff_full_name?.indexOf(receipt_params) > -1){
         isStaffNameFound = true;
       }
 
-      let isReceiptFound = false;
+      let isReceiptFound = false
 
       //Finding receipts from receipt_id
       let receipts;
-      if (item?.salary_receipt[0] && !isNaN(receipt_params)) {
-        receipts = item.salary_receipt.filter((item) => {
-          if (item.salary_receipt_id == receipt_params) {
-            isReceiptFound = true;
-            return item;
+      if(item?.salary_receipt[0] && !isNaN(receipt_params)){
+        receipts = item.salary_receipt.filter((item)=>{
+          if(item.salary_receipt_id == receipt_params){
+              isReceiptFound = true;
+              return item;
           }
-        });
+        })
       }
 
-      if (isReceiptFound) {
+      if(isReceiptFound){
         item.salary_receipt = receipts;
-        return item;
+        return item
       }
 
-      return (
-        isStaffNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params
-      );
+      return isStaffNameFound || item?.contact_info[0]?.whatsapp_no == receipt_params;
     });
+      
 
     if (!staff_data[0] && !student_data[0]) {
       return res.status(200).json({
@@ -638,6 +637,7 @@ async function searchReceipt(req, res, next) {
       student_receipts,
       staff_receipts,
     });
+  
   } catch (error) {
     next(error);
   }
