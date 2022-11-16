@@ -53,7 +53,7 @@ exports.createNewClass = async (req, res, next) => {
 //------------------------------------//
 exports.getAllClasses = async(req,res)=>{
     try {
-        const classes = await Classes.find()
+        const classes = await Classes.find({is_active : {$ne : -1}})
 
         if(!classes[0]){
             return res.status(200).json({
@@ -80,7 +80,10 @@ exports.getAllClasses = async(req,res)=>{
 //------------------------------------//
 exports.getAllClassesByYear = async(req,res)=>{
     try {
-        const classes = await Classes.aggregate([{$group:{_id:{batch_start_year:'$batch_start_year',batch_end_year:'$batch_end_year'}}},{$sort:{batch_start_year: -1}}])
+        const classes = await Classes.aggregate([
+          { $match: { is_active: {$ne : -1} }},
+          {$group:{_id:{batch_start_year:'$batch_start_year',batch_end_year:'$batch_end_year'}}},{$sort:{batch_start_year: -1}},
+        ])
         
         if(!classes[0]){
             return res.status(200).json({
@@ -176,7 +179,7 @@ exports.deleteClass = async (req, res, next) => {
       });
     }
 
-    let updateValue = { $set: { is_active: 0 } };
+    let updateValue = { $set: { is_active: -1 } };
     classes = await Classes.findByIdAndUpdate(req.params.id, updateValue, {
       new: true,
       runValidators: true,
@@ -289,7 +292,10 @@ exports.displayStudentInClass = async (req, res, next) => {
   try {
     const classID = await Classes.findById(req.params.id);
     const academicID = await Academic.find({ class_id: classID })
-      .populate("student_id")
+      .populate({
+        path: "student_id",
+        populate: ["basic_info_id", "contact_info_id"],
+      })
       .populate("fees_id");
 
     if (!academicID[0]) {
@@ -301,7 +307,10 @@ exports.displayStudentInClass = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: academicID,
+      data: {
+        studentDetails: academicID, 
+        classDetails: classID
+      },
       message: "Display successfully",
     });
   } catch (error) {
