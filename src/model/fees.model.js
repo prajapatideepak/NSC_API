@@ -16,7 +16,6 @@ async function getFeesAndStudentData(id) {
       },
     })
     .populate([path, "contact_info_id"]);
-  console.log(studentData[0].academic);
   const data = studentData.map((m) => {
     return { student: m, academic: m.academic };
   });

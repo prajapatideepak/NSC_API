@@ -32,7 +32,6 @@ async function insertadmin(body) {
     is_super_admin: body.is_super_admin,
     security_pin: body.security_pin,
   });
-  console.log(admindata);
   return admindata;
 }
 
@@ -47,7 +46,6 @@ async function getAdminByUsername(u) {
 }
 
 async function updateAdminById(userID, data) {
-  console.log(data);
   const { basic_info_id, contact_info_id } = data;
   const admins = await admin
     .findOne({ username: data.username })
@@ -83,13 +81,10 @@ async function getAdminByid(id) {
 }
 
 async function getAdminByUser(u) {
-  console.log(u);
   const adminData = await admin.findOne({ username: u }).populate({
     path: "staff_id",
     populate: ["basic_info_id", "contact_info_id"],
   });
-
-  console.log(adminData);
 
   return adminData;
 }
