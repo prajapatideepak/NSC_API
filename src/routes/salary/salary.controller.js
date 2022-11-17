@@ -5,7 +5,7 @@ const transactions = require('../../models/transaction');
 const salary_receipt = require('../../models/salaryReceipt');
 const hourly_salary = require("../../models/hourlySalary");
 const monthly_salary = require("../../models/monthlySalary")
-const admin = require("../../models/admin")
+const Admin = require("../../models/admin")
 const bcrypt = require('bcrypt');
 
 const { default: mongoose } = require('mongoose');
@@ -31,17 +31,14 @@ function allSalary(req, res) {
 }
 
 // ---------------------------------------------------
-//-------------- GEN SALARY RECIEPT ------------------
+//-------------- GENERATE SALARY RECIEPT ------------------
 // ---------------------------------------------------
 async function salaryFaculty(req, res) {
     try {
-
-        const { is_by_cheque, is_by_cash, is_by_upi, cheque_no, upi_no, amount, is_hourly, total_hours, rate_per_hour, total_amount, staff_id } = req.body
+        const { is_by_cheque, is_by_cash, is_by_upi, cheque_no, upi_no, amount, is_hourly, total_hours, rate_per_hour, total_amount, staff_id, admin, } = req.body
         console.log(req.body)
-
-
-        const admin_id = await admin.findOne({ admin_id: "6318229dfc5b517b0390a35a" });
-
+        const admin_details = await Admin.findOne({ username: admin })
+        console.log(admin_details)
         const salaryreceipts = await salary_receipt.find()
 
         const salaryreceipt_id = salaryreceipts.length + 1;
@@ -53,7 +50,7 @@ async function salaryFaculty(req, res) {
         const salaryreceipt = await salary_receipt.create({
             salary_receipt_id: salaryreceipt_id,
             staff_id: staff_id,
-            admin_id: admin_id,
+            admin_id: admin_details,
             transaction_id: Salary,
             is_hourly: is_hourly
 
@@ -92,24 +89,24 @@ async function salaryFaculty(req, res) {
 // -------------------------------------------------------------------------------------------
 // -------------- SINGLE FACULTY SALARY DETAILS SEARCH BY FACULTY ID  ------------------------
 // ------------------------------------------------------------------------------------------
-async function getFaculty(req, res) {
+// async function getFaculty(req, res) {
 
-    try {
+//     try {
 
-        let staff_Details;
-        staff_Details = await salary_receipt.find({ staff_id: req.params.id })
-            .populate("transaction_id").populate({ path: "staff_id", populate: ["basic_info_id", "contact_info_id"] })
-        res.status(200).json({
-            success: true,
+//         let staff_Details;
+//         staff_Details = await salary_receipt.find({ staff_id: req.params.id })
+//             .populate("transaction_id").populate({ path: "staff_id", populate: ["basic_info_id", "contact_info_id"] })
+//         res.status(200).json({
+//             success: true,
 
-            staff_Details,
+//             staff_Details,
 
 
-        });
-    } catch (error) {
-        return res.status(500).send(error.stack);
-    }
-}
+//         });
+//     } catch (error) {
+//         return res.status(500).send(error.stack);
+//     }
+// }
 
 // ------------------------------------------------------------------------------------------
 // -------------- SINGLE FACULTY TOTAL SALARY RECIEPT  --------------------------------------
@@ -140,7 +137,9 @@ async function getsalary(req, res) {
         let monthlysalary;
         let staff_details;
         const getdetails = await salary_receipt.findOne({ salary_receipt_id: req.params.salary_receipt_id })
-            .populate("transaction_id").populate({ path: "staff_id", populate: ["basic_info_id", "contact_info_id"] }).populate("admin_id")
+            .populate("transaction_id")
+            .populate({ path: "staff_id", populate: ["basic_info_id", "contact_info_id"] })
+            .populate({ path: "admin_id", populate: ["staff_id"] })
         if (getdetails.is_hourly == 1) {
             hourlysalary = await hourly_salary.findOne({ salary_receipt_id: getdetails._id })
         } else {
@@ -160,11 +159,6 @@ async function getsalary(req, res) {
     } catch (error) {
         return res.status(500).send(error.stack);
     }
-    // const getdetails = salary_receipt.findById(req.params.id)
-    // .populate("salary_receipt_id");
-
-
-
 }
 
 // ---------------------------------------------------
@@ -176,16 +170,6 @@ async function updateStaffReceipt(req, res, next) {
         const salary_receipt_id = req.params.salary_receipt_id;
         const { is_by_cash, is_by_cheque, is_by_upi, total_hours, is_hourly, rate_per_hour, cheque_no, upi_no, amount, admin_id, security_pin } = req.body;
 
-        // const admin_details = await admin.findById(salary_receipt_id.admin_id);
-
-        // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
-
-        // if(!isMatch) {
-        //     return res.status(200).json({
-        //         success: false,
-        //         message: 'Please enter valid PIN'
-        //     });
-        // }
 
         const salary_receipt_details = await salary_receipt.findOneAndUpdate({ salary_receipt_id }, {
             // admin_id: admin_details._id,
@@ -249,7 +233,7 @@ module.exports = {
     allSalary,
     getsalary,
     updateStaffReceipt,
-    getFaculty,
+    // getFaculty,
     getFacultyhistory,
 };
 

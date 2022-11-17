@@ -9,12 +9,16 @@ const {
   httpChangePassword,
   httpChangeByAdmin,
   httpSetDefault,
+  httpVerifySuperAdmin,
+  httpAdminpinverify
 } = require("./admin.controller");
 
 const adminRouter = express.Router();
 
 adminRouter.put("/", httpUpdateAdmin);
 adminRouter.post("/", httpInsertAdmin);
+adminRouter.post("/verify", httpVerifySuperAdmin);
+adminRouter.post("/pinverify", httpAdminpinverify);
 adminRouter.get("/", httpGetadmin);
 adminRouter.get("/all", httpGetAllAdmin);
 adminRouter.post("/login", httpLoginRequest);

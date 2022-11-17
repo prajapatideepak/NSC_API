@@ -50,7 +50,7 @@ async function generateStudentReceipt(req, res) {
         const net_amount = amount - discount;
 
             const transaction_details = await Transaction.create({
-                is_by_cash,
+            is_by_cash,
             is_by_cheque,
             is_by_upi,
             cheque_no: cheque_no ? cheque_no : -1,
