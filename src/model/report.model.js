@@ -5,7 +5,6 @@ async function GetReport() {
 
   const current_Date = new Date();
   current_Date.setDate(current_Date.getDate() - 1);
-  console.log(current_Date);
 
   filterData = await data.filter((recipet) => recipet.date > current_Date);
 
