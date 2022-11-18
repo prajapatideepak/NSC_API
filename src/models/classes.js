@@ -4,12 +4,12 @@ const mongoose = require("mongoose");
 
 const classes = new mongoose.Schema({
     batch_start_year:{
-        type:String,
+        type: Number,
         requied: [true, 'Please enter batch_start_year'],
         minLength: [4, 'Please enter four digits only'],
     },
     batch_end_year:{
-        type:String,
+        type: Number,
         requied: [true, 'Please enter batch_end_year'],
         minLength: [4, 'Please enter four digits only'],
     },
@@ -19,7 +19,7 @@ const classes = new mongoose.Schema({
     },
     total_student:{
         type: Number,
-        required: [true, 'Please enter total Students'],
+        default: 0
     },
     fees:{
         type: Number,

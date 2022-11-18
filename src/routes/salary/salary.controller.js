@@ -1,15 +1,15 @@
-const staffs = require('../../models/staff');
-const BasicInfo = require('../../models/basicInfo');
-const ContactInfo = require('../../models/contactInfo');
-const transactions = require('../../models/transaction');
-const salary_receipt = require('../../models/salaryReceipt');
+const staffs = require("../../models/staff");
+const BasicInfo = require("../../models/basicinfo");
+const ContactInfo = require("../../models/contactinfo");
+const transactions = require("../../models/transaction");
+const salary_receipt = require("../../models/salaryReceipt");
 const hourly_salary = require("../../models/hourlySalary");
 const monthly_salary = require("../../models/monthlySalary")
 const Admin = require("../../models/admin")
 const bcrypt = require('bcrypt');
 
-const { default: mongoose } = require('mongoose');
-const { populate } = require('../../models/admin');
+const { default: mongoose } = require("mongoose");
+const { populate } = require("../../models/admin");
 
 // ---------------------------------------------------
 //-------------- ALL SALARY RECIEPT ------------------
@@ -227,6 +227,104 @@ async function updateStaffReceipt(req, res, next) {
     }
 }
 
+// ---------------------------------------------------
+//----------- UPDATE SALARY RECIEPT ------------------
+// ---------------------------------------------------
+async function updateStaffReceipt(req, res, next) {
+  try {
+    const salary_receipt_id = req.params.salary_receipt_id;
+    const {
+      is_by_cash,
+      is_by_cheque,
+      is_by_upi,
+      total_hours,
+      is_hourly,
+      rate_per_hour,
+      cheque_no,
+      upi_no,
+      amount,
+      admin_id,
+      security_pin,
+    } = req.body;
+
+    // const admin_details = await admin.findById(salary_receipt_id.admin_id);
+
+    // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
+
+    // if(!isMatch) {
+    //     return res.status(200).json({
+    //         success: false,
+    //         message: 'Please enter valid PIN'
+    //     });
+    // }
+
+    const salary_receipt_details = await salary_receipt.findOneAndUpdate(
+      { salary_receipt_id },
+      {
+        // admin_id: admin_details._id,
+        is_hourly,
+        date: Date.now(),
+      }
+    );
+
+    if (salary_receipt_details.is_hourly && is_hourly) {
+      const hourly_salary_details = await hourly_salary.findOneAndUpdate(
+        { salary_receipt_id: salary_receipt_details._id },
+        {
+          total_hours,
+          rate_per_hour,
+          total_amount: amount,
+        }
+      );
+    } else if (salary_receipt_details.is_hourly && !is_hourly) {
+      await hourly_salary.deleteOne({
+        salary_receipt_id: salary_receipt_details._id,
+      });
+      await monthly_salary.create({
+        total_amount: amount,
+        salary_receipt_id: salary_receipt_details._id,
+      });
+    } else if (!salary_receipt_details.is_hourly && is_hourly) {
+      await monthly_salary.deleteOne({
+        salary_receipt_id: salary_receipt_details._id,
+      });
+      await hourly_salary.create({
+        total_hours,
+        rate_per_hour,
+        total_amount: amount,
+        salary_receipt_id: salary_receipt_details._id,
+      });
+    } else {
+      const monthly_salary_details = await monthly_salary.findOneAndUpdate(
+        { salary_receipt_id: salary_receipt_details._id },
+        {
+          total_amount: amount,
+        }
+      );
+    }
+
+    const transaction_details = await transactions.findByIdAndUpdate(
+      salary_receipt_details.transaction_id,
+      {
+        is_by_cheque,
+        is_by_cash,
+        is_by_upi,
+        cheque_no: cheque_no ? cheque_no : -1,
+        upi_no: upi_no ? upi_no : "",
+        amount,
+        date: Date.now(),
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Receipt Updated successfully",
+      salary_receipt_details,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 module.exports = {
     salaryFaculty,
@@ -236,45 +334,3 @@ module.exports = {
     // getFaculty,
     getFacultyhistory,
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

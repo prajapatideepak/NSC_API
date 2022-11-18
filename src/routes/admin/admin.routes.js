@@ -5,6 +5,7 @@ const {
   httpLoginRequest,
   httpUpdateAdmin,
   httpGetadmin,
+  httpVerifySuperAdmin,
   httpGetAllAdmin,
   httpChangePassword,
   httpChangeByAdmin,
@@ -20,8 +21,9 @@ adminRouter.post("/", httpInsertAdmin);
 adminRouter.post("/verify", httpVerifySuperAdmin);
 adminRouter.post("/pinverify", httpAdminpinverify);
 adminRouter.get("/", httpGetadmin);
-adminRouter.get("/all", httpGetAllAdmin);
 adminRouter.post("/login", httpLoginRequest);
+adminRouter.post("/verify", httpVerifySuperAdmin);
+adminRouter.get("/all", httpGetAllAdmin);
 adminRouter.put("/forgot", httpChangePassword);
 adminRouter.put("/change", httpChangeByAdmin);
 adminRouter.post("/default", httpSetDefault);

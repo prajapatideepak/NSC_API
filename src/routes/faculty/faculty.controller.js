@@ -1,6 +1,6 @@
 const staffs = require('../../models/staff');
-const BasicInfo = require('../../models/basicInfo');
-const ContactInfo = require('../../models/contactInfo');
+const BasicInfo = require('../../models/basicinfo');
+const ContactInfo = require('../../models/contactinfo');
 const transactions = require('../../models/transaction');
 const salary_receipt = require('../../models/salaryReceipt');
 const hourly_salary = require("../../models/hourlySalary");
@@ -33,19 +33,16 @@ async function registerFaculty(req, res) {
       const myPromise = new Promise((resolve, reject) => {
         if (files.photo.originalFilename != '' && files.photo.size != 0) {
           const ext = files.photo.mimetype.split('/')[1].trim();
-
           if (files.photo.size >= 2000000) { // 2000000(bytes) = 2MB
             return res.status(400).json({ success: false, message: 'Photo size should be less than 2MB' })
           }
           if (ext != "png" && ext != "jpg" && ext != "jpeg") {
             return res.status(400).json({ success: false, message: 'Only JPG, JPEG or PNG photo is allowed' })
           }
-
           var oldPath = files.photo.filepath;
           var fileName = Date.now() + '_' + files.photo.originalFilename;
           var newPath = 'public/images' + '/' + fileName;
           var rawData = fs.readFileSync(oldPath)
-
           fs.writeFile(newPath, rawData, function (err) {
             if (err) {
               return res.status(500).json({ success: false, message: err.message })
