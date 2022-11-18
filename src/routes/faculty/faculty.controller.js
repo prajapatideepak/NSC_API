@@ -164,7 +164,6 @@ async function editFaculty(req, res) {
 
   try {
     const faculty_id = req.params.id
-    console.log(faculty_id)
     const staff_details = await staffs.findByIdAndUpdate(faculty_id, {
       joining_date: req.body.joining_date,
       role: req.body.role

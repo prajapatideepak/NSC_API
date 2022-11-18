@@ -14,6 +14,7 @@ var cors = require('cors')
 app.use(express.json());
 app.use(cors());
 app.use(express.urlencoded({extended : false }))
+app.use(express.static("public/images"))
 
 app.use("/students", studentRouter);
 app.use("/fees", feesRouter);
