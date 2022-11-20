@@ -163,56 +163,74 @@ async function editFaculty(req, res) {
     // ------------------------------------------------------------------------------------
     const form = new formidable.IncomingForm();
     form.parse(req, async function (err, fields, files) {
-      if (err) {
-        return res.status(500).json({ success: false, message: err.message });
-      }
+      console.log(1.1)
+      // if (err) {
+      //   return res.status(500).json({ success: false, message: err.message });
+      // }
       console.log(2)
-
       let photo = '';
-
-      const myPromise = new Promise((resolve, reject) => {
-        if (
-          files.photo.originalFilename != "" &&
-          files.photo.size != 0 &&
-          fields.photo_name == ""
-        ) {
-          const ext = files.photo.mimetype.split("/")[1].trim();
-          console.log(3)
-          if (files.photo.size >= 2000000) {
-            // 2000000(bytes) = 2MB
-            return res.status(400).json({
-              success: false,
-              message: "Photo size should be less than 2MB",
-            });
-          }
-          console.log(4)
-          if (ext != "png" && ext != "jpg" && ext != "jpeg") {
-            return res.status(400).json({
-              success: false,
-              message: "Only JPG, JPEG or PNG photo is allowed",
-            });
-          }
-          console.log(5)
-          var oldPath = files.photo.filepath;
-          var fileName = Date.now() + "_" + files.photo.originalFilename;
-          var newPath = "public/images" + "/" + fileName;
-          var rawData = fs.readFileSync(oldPath);
-          console.log(6)
-          fs.writeFile(newPath, rawData, function (err) {
-            if (err) {
-              return res
-                .status(500)
-                .json({ success: false, message: err.message });
-            }
-            photo = fileName.trim();
-            resolve();
+      // const myPromise = new Promise((resolve, reject) => {
+      if (
+        files.photo.originalFilename != "" &&
+        files.photo.size != 0 &&
+        fields.photo_name == ""
+      ) {
+        const ext = files.photo.mimetype.split("/")[1].trim();
+        console.log(3)
+        if (files.photo.size >= 2000000) {
+          // 2000000(bytes) = 2MB
+          return res.status(400).json({
+            success: false,
+            message: "Photo size should be less than 2MB",
           });
+        }
+        console.log(4)
+        if (ext != "png" && ext != "jpg" && ext != "jpeg") {
+          return res.status(400).json({
+            success: false,
+            message: "Only JPG, JPEG or PNG photo is allowed",
+          });
+        }
+        console.log(5)
+        var oldPath = files.photo.filepath;
+        var fileName = Date.now() + "_" + files.photo.originalFilename;
+        var newPath = "public/images" + "/" + fileName;
+        var rawData = fs.readFileSync(oldPath);
+        console.log(6)
 
-        }
-        else {
+        fs.writeFile(newPath, rawData, function (err) {
+          if (err) {
+            return res
+              .status(500)
+              .json({ success: false, message: err.message });
+          }
+          photo = fileName.trim();
           resolve();
-        }
-      });
+        });
+
+      }
+      else {
+        resolve();
+      }
+
+      const {
+        class_name,
+        full_name,
+        mother_name,
+        whatsapp_no,
+        alternate_no,
+        dob,
+        gender,
+        address,
+        email,
+        discount,
+        reference,
+        net_fees,
+        note,
+        school_name,
+        admission_date,
+      } = fields;
+      // });
       console.log(7)
       myPromise
         .then(async () => {
