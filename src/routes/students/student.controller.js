@@ -134,7 +134,7 @@ async function registerStudent(req, res, next) {
       });
 
       const fees = await Fees.create({
-        discount,
+        discount : discount == null || discount == undefined ? 0 : discount,
         net_fees: net_fees,
         pending_amount: net_fees,
       });
