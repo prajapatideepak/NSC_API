@@ -111,7 +111,6 @@ async function getAllFaculty(req, res) {
       })
     })
     .catch(err => {
-      console.log(err);
       res.status(500).json({
         error: err
       })
@@ -156,16 +155,11 @@ async function getFacultydetails(req, res) {
 // --------------   EDIT FACULTY   ------------------------
 // --------------------------------------------------------
 async function editFaculty(req, res) {
-  console.log(1)
   try {
-    console.log(0)
     const form = new formidable.IncomingForm();
-    console.log(1.0)
 
     form.parse(req, async function (err, fields, files) {
-      console.log(1.1)
       if (err) {
-        console.log(err ,"err")
         return res.status(500).json({ success: false, message: err.message });
       }
       let photo = '';
@@ -194,7 +188,6 @@ async function editFaculty(req, res) {
         var fileName = Date.now() + "_" + files.photo.originalFilename;
         var newPath = "public/images" + "/" + fileName;
         var rawData = fs.readFileSync(oldPath);
-        console.log(6)
 
         fs.writeFile(newPath, rawData, function (err) {
           if (err) {
@@ -220,13 +213,13 @@ async function editFaculty(req, res) {
 
       const faculty_id = req.params.id
       const staff_details = await staffs.findByIdAndUpdate(
-        { faculty_id },
+        faculty_id ,
         {
           joining_date,
           role
         })
-      console.log(8)
-      if (
+
+        if (
         (fields.photo_name == "" && photo != "") ||
         (fields.photo_name == "user_default@123.png" && photo == "")
       ) {
@@ -244,13 +237,13 @@ async function editFaculty(req, res) {
         })
 
       }
-      console.log(9)
+
       const contact_info_id = await ContactInfo.findByIdAndUpdate(staff_details.contact_info_id, {
         whatsapp_no,
         address,
         email
       })
-      console.log(10)
+
       res.status(200).json({
         success: true,
         message: "Profile Updated successfully",
@@ -261,7 +254,6 @@ async function editFaculty(req, res) {
     })
   }
   catch (error) {
-    console.log(error, "errro")
     res.status(400).json({
       success: false,
       message: error.message,
@@ -292,7 +284,6 @@ function deleteFaculty(req, res) {
     })
 
     .catch(err => {
-      console.log(err);
       res.status(500).json({
         error: err
       })
