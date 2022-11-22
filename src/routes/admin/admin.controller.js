@@ -90,8 +90,6 @@ async function httpChangeByAdmin(req, res) {
 
 async function httpSetDefault(req, res) {
   const { username } = req.body;
-  console.log(req.body);
-  console.log("username", username);
   const password = "admin";
 
   try {
@@ -166,8 +164,6 @@ async function httpVerifySuperAdmin(req, res) {
   }
 }
 
-
-
 async function httpUpdateAdmin(req, res) {
   const token = req.headers.authorization;
   const data = req.body;
@@ -181,7 +177,6 @@ async function httpUpdateAdmin(req, res) {
     const username = await verifyToken(token);
 
     const result = await updateAdminById(username.userID, data);
-    console.log(result);
     res.status(200).json({
       ok: true,
       data: result,
@@ -239,6 +234,8 @@ async function httpGetAllAdmin(req, res) {
     res.status(500).send(error.message);
   }
 }
+
+///admin authentication super admin
 
 module.exports = {
   httpInsertAdmin,

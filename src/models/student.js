@@ -31,10 +31,10 @@ const studentSchema = new mongoose.Schema({
   reference: {
     type: String,
   },
-  is_cancelled:{
+  is_cancelled: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 });
 
 studentSchema.virtual("academic", {

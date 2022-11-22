@@ -48,7 +48,6 @@ async function salaryFaculty(req, res) {
       total_amount,
       staff_id,
     } = req.body;
-    console.log(req.body);
 
     const admin_id = await admin.findOne({
       admin_id: "6318229dfc5b517b0390a35a",

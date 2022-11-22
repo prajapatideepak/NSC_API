@@ -5,7 +5,7 @@ const studentRouter = express.Router();
 
 studentRouter.post("/register", registerStudent);
 
-studentRouter.get("/", getAllStudents);
+studentRouter.post("/", getAllStudents);
 
 studentRouter.get("/details/:id_name_whatsapp", getStudentDetails);
 
