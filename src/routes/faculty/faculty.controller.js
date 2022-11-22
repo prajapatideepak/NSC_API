@@ -158,25 +158,24 @@ async function getFacultydetails(req, res) {
 async function editFaculty(req, res) {
   console.log(1)
   try {
-    // ------------------------------------------------------------------------------------
-    // --------------------------IMAGE UPLOAD ---------------------------------------------
-    // ------------------------------------------------------------------------------------
+    console.log(0)
     const form = new formidable.IncomingForm();
+    console.log(1.0)
+
     form.parse(req, async function (err, fields, files) {
       console.log(1.1)
-      // if (err) {
-      //   return res.status(500).json({ success: false, message: err.message });
-      // }
-      console.log(2)
+      if (err) {
+        console.log(err ,"err")
+        return res.status(500).json({ success: false, message: err.message });
+      }
       let photo = '';
-      // const myPromise = new Promise((resolve, reject) => {
       if (
         files.photo.originalFilename != "" &&
         files.photo.size != 0 &&
         fields.photo_name == ""
       ) {
         const ext = files.photo.mimetype.split("/")[1].trim();
-        console.log(3)
+
         if (files.photo.size >= 2000000) {
           // 2000000(bytes) = 2MB
           return res.status(400).json({
@@ -184,14 +183,13 @@ async function editFaculty(req, res) {
             message: "Photo size should be less than 2MB",
           });
         }
-        console.log(4)
+
         if (ext != "png" && ext != "jpg" && ext != "jpeg") {
           return res.status(400).json({
             success: false,
             message: "Only JPG, JPEG or PNG photo is allowed",
           });
         }
-        console.log(5)
         var oldPath = files.photo.filepath;
         var fileName = Date.now() + "_" + files.photo.originalFilename;
         var newPath = "public/images" + "/" + fileName;
@@ -205,61 +203,60 @@ async function editFaculty(req, res) {
               .json({ success: false, message: err.message });
           }
           photo = fileName.trim();
-          resolve();
         });
 
       }
-      else {
-        resolve();
-      }
 
       const {
-        class_name,
         full_name,
-        mother_name,
+        email,
         whatsapp_no,
-        alternate_no,
         dob,
         gender,
+        role,
         address,
-        email,
-        discount,
-        reference,
-        net_fees,
-        note,
-        school_name,
-        admission_date,
+        joining_date,
       } = fields;
-      // });
-      console.log(7)
-      myPromise
-        .then(async () => {
-          const faculty_id = req.params.id
-          const staff_details = await staffs.findByIdAndUpdate(faculty_id, {
-            joining_date: req.body.joining_date,
-            role: req.body.role
-          })
-          console.log(8)
-          const basic_info_id = await BasicInfo.findByIdAndUpdate(staff_details.basic_info_id, {
-            photo,
-            full_name: req.body.full_name,
-            gender: req.body.gender,
-            dob: req.body.dob,
-          })
-          console.log(9)
-          const contact_info_id = await ContactInfo.findByIdAndUpdate(staff_details.contact_info_id, {
-            whatsapp_no: req.body.whatsapp_no,
-            alternate_no: req.body.alternate_no,
-            address: req.body.address,
-            email: req.body.email,
-          })
-          console.log(10)
-          res.status(200).json({
-            success: true,
-            message: "Profile Updated successfully",
 
-          })
+      const faculty_id = req.params.id
+      const staff_details = await staffs.findByIdAndUpdate(
+        { faculty_id },
+        {
+          joining_date,
+          role
         })
+      console.log(8)
+      if (
+        (fields.photo_name == "" && photo != "") ||
+        (fields.photo_name == "user_default@123.png" && photo == "")
+      ) {
+        const basic_info_id = await BasicInfo.findByIdAndUpdate(staff_details.basic_info_id, {
+          photo,
+          full_name,
+          gender,
+          dob
+        })
+      } else {
+        const basic_info_id = await BasicInfo.findByIdAndUpdate(staff_details.basic_info_id, {
+          full_name,
+          gender,
+          dob
+        })
+
+      }
+      console.log(9)
+      const contact_info_id = await ContactInfo.findByIdAndUpdate(staff_details.contact_info_id, {
+        whatsapp_no,
+        address,
+        email
+      })
+      console.log(10)
+      res.status(200).json({
+        success: true,
+        message: "Profile Updated successfully",
+
+      })
+
 
     })
   }
