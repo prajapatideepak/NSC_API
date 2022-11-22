@@ -8,7 +8,7 @@ SalaryRouter.get("/",allSalary)
 
 SalaryRouter.post("/create-reciept", salaryFaculty);
 
-SalaryRouter.get("/facultysalary/:id", getFaculty);
+// SalaryRouter.get("/facultysalary/:id", getFaculty);
 
 SalaryRouter.get("/Staffhistory/:id", getFacultyhistory);
 
