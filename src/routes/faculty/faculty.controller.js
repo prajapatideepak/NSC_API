@@ -220,7 +220,7 @@ async function editFaculty(req, res) {
 
       const faculty_id = req.params.id
       const staff_details = await staffs.findByIdAndUpdate(
-        { faculty_id },
+         faculty_id ,
         {
           joining_date,
           role
