@@ -158,6 +158,7 @@ async function registerStudent(req, res, next) {
         //201 = Created successfully
         success: true,
         message: "Student registration successfull",
+        student_id: student.student_id
       });
     });
   } catch (error) {
@@ -171,8 +172,7 @@ async function registerStudent(req, res, next) {
 async function getAllStudents(req, res) {
   try {
 
-    const is_primary = req.body
-    console.log(req.body)
+    const is_primary = req.body.is_primary == 'primary' ? 0 : 1;
 
     let student_data = await Student.aggregate([
       { $match: { is_cancelled: 0 } },
@@ -207,14 +207,14 @@ async function getAllStudents(req, res) {
                 localField: "class_id",
                 foreignField: "_id",
                 as: "class",
-                // pipeline:[
-                //     {
-                //         $match: {
-                //             is_active: 1, 
-                //             is_primary : is_primary
-                //         }
-                //     }
-                // ]
+                pipeline:[
+                    {
+                        $match: {
+                            is_active: 1, 
+                            is_primary
+                        }
+                    }
+                ]
               },
             },
             {

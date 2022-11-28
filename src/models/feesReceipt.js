@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const feesReceipt = new mongoose.Schema({
     fees_receipt_id:{
         type: Number,
-        unique: true,
         required: true,
     },
     fees_id:{
