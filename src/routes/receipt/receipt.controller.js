@@ -27,13 +27,13 @@ const generateReceiptFunction = async (
   admin_id,
   security_pin
 ) => {
-  const admin_details = await Admin.findById("632ea4f164fd9d161a5283e1");
+  const admin_details = await Admin.findById(admin_id);
+  
+  const isMatch = admin_details.security_pin == security_pin;
 
-  // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
-
-  // if(!isMatch) {
-  //     return false;
-  // }
+  if(!isMatch) {
+      return false;
+  }
 
   const student_details = await Student.findOne({ student_id });
 
@@ -239,10 +239,7 @@ async function updateStudentReceipt(req, res, next) {
 
     const admin_details = await Admin.findById(admin_id);
 
-    const isMatch = await bcrypt.compare(
-      security_pin,
-      admin_details.security_pin
-    );
+    const isMatch = security_pin == admin_details.security_pin;
 
     if (!isMatch) {
       return res.status(400).json({
