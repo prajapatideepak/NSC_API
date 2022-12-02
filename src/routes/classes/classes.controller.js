@@ -341,7 +341,6 @@ exports.exportStudentInClass = async (req, res, next) => {
     const workbook = new Exceljs.Workbook();
     const worksheet = workbook.addWorksheet("Student");
     worksheet.columns = [
-      // { headers: "S.no", key: "student_id", width: "10" },
       { header: "S_no", key: "S_No", width: "10" },
       { header: "Class_Name", key: "Class_Name", width: "10" },
       { header: "Name", key: "Name", width: "10" },
@@ -441,7 +440,7 @@ exports.exportPendingStudentInClass = async (req, res, next) => {
     const homeDir = require('os').homedir(); // See: https://www.npmjs.com/package/os
     const desktopDir = `${homeDir}/Downloads`;
 
-    const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}.xlsx`)
+    const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}_Pending_Fee.xlsx`)
     console.log(desktopDir);
   
 

@@ -8,6 +8,8 @@ const monthly_salary = require("../../models/monthlySalary")
 const admin = require("../../models/admin")
 const formidable = require('formidable');
 const fs = require('fs');
+const Exceljs = require("Exceljs");
+
 
 const { default: mongoose } = require('mongoose');
 
@@ -115,17 +117,55 @@ async function getAllFaculty(req, res) {
         error: err
       })
     })
-  // try {
-  //   let staffData;
-  //   staffData = await staffs.find().populate("basic_info_id").populate("contact_info_id")
-  //   res.status(200).json({
+}
 
-  //     success: true,
-  //     staffData: result
-  //   });
-  // } catch (error) {
-  //   return res.status(500).send(error.stack);
-  // }
+
+// --------------------------------------------------------
+// --------------  Export ALL FACULTY ------------------------
+// --------------------------------------------------------
+async function Exportallfaculty(req, res) {
+  try {
+    const allfaculty = await staffs.find().populate("basic_info_id").populate("contact_info_id")
+
+    const workbook = new Exceljs.Workbook();
+    const worksheet = workbook.addWorksheet("Staff");
+    worksheet.columns = [
+      { header: "Staff_Name", key: "Staff_Name", width: "10" },
+      { header: "Staff_Phone", key: "Staff_Phone", width: "10" },
+      { header: "Staff_Role", key: "Staff_Role", width: "10" },
+    ];
+
+    let count = 1;
+    allfaculty.forEach(faculty => {
+      (faculty)._id = count;
+      console.log(faculty)
+      worksheet.addRow({
+        "Staff_Name": faculty.basic_info_id.full_name,
+        "Staff_Phone": faculty.contact_info_id.whatsapp_no,
+        "Staff_Role": faculty.role
+      })
+      count += 1;
+    })
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true }
+    })
+    const homeDir = require('os').homedir(); // See: https://www.npmjs.com/package/os
+    const desktopDir = `${homeDir}/Downloads`;
+
+    const data = await workbook.xlsx.writeFile(`${desktopDir}/All_Faculty.xlsx`)
+    console.log(desktopDir);
+
+    return res.status(200).json({
+      success: true,
+      message: "Data Export",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
 }
 
 
@@ -213,13 +253,13 @@ async function editFaculty(req, res) {
 
       const faculty_id = req.params.id
       const staff_details = await staffs.findByIdAndUpdate(
-         faculty_id ,
+        faculty_id,
         {
           joining_date,
           role
         })
 
-        if (
+      if (
         (fields.photo_name == "" && photo != "") ||
         (fields.photo_name == "user_default@123.png" && photo == "")
       ) {
@@ -295,6 +335,7 @@ function deleteFaculty(req, res) {
 
 module.exports = {
   getAllFaculty,
+  Exportallfaculty,
   registerFaculty,
   getFacultydetails,
   editFaculty,
