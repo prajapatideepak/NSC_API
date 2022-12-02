@@ -75,7 +75,7 @@ const generateReceiptFunction = async (
     fees_receipts.length + salary_receipts.length + 1 + 1000;
 
   const fees_receipt_details = await FeesReceipt.create({
-    fees_receipt_id,
+    fees_receipt_id : 10202,
     fees_id: academic_details.fees_id,
     admin_id: admin_details._id,
     transaction_id: transaction_details._id,
