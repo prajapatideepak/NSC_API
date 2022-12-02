@@ -1,4 +1,8 @@
-const { GetReport } = require("../../model/report.model");
+const {
+  GetReport,
+  GetSalaryReport,
+  getYearlyReport,
+} = require("../../model/report.model");
 
 async function httpGetReport(req, res) {
   try {
@@ -15,6 +19,34 @@ async function httpGetReport(req, res) {
   }
 }
 
+async function httpGetSalaryReport(req, res) {
+  try {
+    const data = await GetSalaryReport();
+    return res.status(200).json({
+      ok: true,
+      data: data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: `${error}`,
+    });
+  }
+}
+
+async function httpGetMonthlyReport(req, res) {
+  try {
+    const data = await getYearlyReport();
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: `${error}`,
+    });
+  }
+}
 module.exports = {
   httpGetReport,
+  httpGetMonthlyReport,
+  httpGetSalaryReport,
 };

@@ -165,6 +165,7 @@ async function httpVerifySuperAdmin(req, res) {
   }
 }
 
+
 async function httpAdminpinverify(req, res) {
   const loginData = req.body;
   console.log(req.body)
@@ -265,6 +266,8 @@ async function httpGetAllAdmin(req, res) {
     res.status(500).send(error.message);
   }
 }
+
+///admin authentication super admin
 
 module.exports = {
   httpInsertAdmin,
