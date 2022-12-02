@@ -22,6 +22,7 @@
     "nodemailer": "^6.8.0",
     "nodemon": "^2.0.19",
     "qrcode-terminal": "^0.12.0",
+    "react-html-table-to-excel": "^2.0.0",
     "validator": "^13.7.0",
     "whatsapp-web.js": "^1.17.1"
   },
