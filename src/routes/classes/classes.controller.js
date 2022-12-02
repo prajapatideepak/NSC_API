@@ -3,6 +3,8 @@ const Academic = require("../../models/academic");
 const Student = require("../../models/student");
 const Fees = require("../../models/fees");
 const BasicInfo = require("../../models/basicinfo");
+const Exceljs = require("Exceljs");
+const student = require("../../models/student");
 
 //---------------------------------------//
 //----------Create new classes-----------//
@@ -51,58 +53,58 @@ exports.createNewClass = async (req, res, next) => {
 //------------------------------------//
 //----------Get All classes-----------//
 //------------------------------------//
-exports.getAllClasses = async(req,res)=>{
-    try {
-        const classes = await Classes.find({is_active : {$ne : -1}})
+exports.getAllClasses = async (req, res) => {
+  try {
+    const classes = await Classes.find({ is_active: { $ne: -1 } })
 
-        if(!classes[0]){
-            return res.status(200).json({
-                success:false,
-                message:"Classes not found"
-            }) 
-        }
-
-        res.status(200).json({
-            success:true,
-            data:classes,
-            message:"Display successfully"
-        })
-    } catch (error) {
-        res.status(400).json({
-            success:false,
-            message:error.message
-        })
+    if (!classes[0]) {
+      return res.status(200).json({
+        success: false,
+        message: "Classes not found"
+      })
     }
+
+    res.status(200).json({
+      success: true,
+      data: classes,
+      message: "Display successfully"
+    })
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    })
+  }
 }
 
 //------------------------------------//
 //----------Get All classes By Year-----------//
 //------------------------------------//
-exports.getAllClassesByYear = async(req,res)=>{
-    try {
-        const classes = await Classes.aggregate([
-          { $match: { is_active: {$ne : -1} }},
-          {$group:{_id:{batch_start_year:'$batch_start_year',batch_end_year:'$batch_end_year'}}},{$sort:{batch_start_year: -1}},
-        ])
-        
-        if(!classes[0]){
-            return res.status(200).json({
-                success:false,
-                message:"Classes not found"
-            }) 
-        }
+exports.getAllClassesByYear = async (req, res) => {
+  try {
+    const classes = await Classes.aggregate([
+      { $match: { is_active: { $ne: -1 } } },
+      { $group: { _id: { batch_start_year: '$batch_start_year', batch_end_year: '$batch_end_year' } } }, { $sort: { batch_start_year: -1 } },
+    ])
 
-        res.status(200).json({
-            success:true,
-            data:classes,
-            message:"Display successfully"
-        })
-    } catch (error) {
-        res.status(400).json({
-            success:false,
-            message:error.message
-        })
+    if (!classes[0]) {
+      return res.status(200).json({
+        success: false,
+        message: "Classes not found"
+      })
     }
+
+    res.status(200).json({
+      success: true,
+      data: classes,
+      message: "Display successfully"
+    })
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    })
+  }
 }
 
 //------------------------------------//
@@ -308,13 +310,147 @@ exports.displayStudentInClass = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        studentDetails: academicID, 
+        studentDetails: academicID,
         classDetails: classID
       },
       message: "Display successfully",
     });
   } catch (error) {
     res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+//---------------------------------------------------------//
+//----------Export to Excel All Student In class-----------//
+//---------------------------------------------------------//
+exports.exportStudentInClass = async (req, res, next) => {
+  try {
+    const classID = await Classes.findById(req.params.id);
+    const academicID = await Academic.find({ class_id: classID })
+      .populate({
+        path: "student_id",
+        populate: ["basic_info_id", "contact_info_id"],
+      })
+      .populate("fees_id")
+      .populate("class_id");
+
+    const workbook = new Exceljs.Workbook();
+    const worksheet = workbook.addWorksheet("Student");
+    worksheet.columns = [
+      // { headers: "S.no", key: "student_id", width: "10" },
+      { header: "S_no", key: "S_No", width: "10" },
+      { header: "Class_Name", key: "Class_Name", width: "10" },
+      { header: "Name", key: "Name", width: "10" },
+      { header: "Phone", key: "Phone", width: "10" },
+      { header: "Total Fee", key: "Total Fee", width: "10" },
+      { header: "Paidup", key: "Paidup", width: "10" },
+      { header: "Pending", key: "Pending", width: "10" },
+    ];
+
+    let count = 1;
+    let className = ""
+    academicID.forEach(student => {
+      (student).student_id = count;
+      className = student.class_id.class_name
+      const Student_details = student
+      worksheet.addRow({
+        "S_No": Student_details.student_id.student_id,
+        "Class_Name": className,
+        "Name" : Student_details.student_id.basic_info_id.full_name,
+        "Phone" : Student_details.student_id.contact_info_id.whatsapp_no,
+        "Total Fee" : Student_details.fees_id.net_fees,
+        "Paidup" : Student_details.fees_id.net_fees - Student_details.fees_id.pending_amount,
+        "Pending" : Student_details.fees_id.pending_amount,
+      })
+      count += 1;
+    })
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true }
+    })
+    const homeDir = require('os').homedir(); // See: https://www.npmjs.com/package/os
+    const desktopDir = `${homeDir}/Downloads`;
+
+    const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}.xlsx`)
+    console.log(desktopDir);
+  
+
+    return res.status(200).json({
+      success: true,
+      message: "Data Export",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+//---------------------------------------------------------//
+//----------Export to Excel All Student In class-----------//
+//---------------------------------------------------------//
+exports.exportPendingStudentInClass = async (req, res, next) => {
+  try {
+    const classID = await Classes.findById(req.params.id);
+    const academicID = await Academic.find({ class_id: classID })
+      .populate({
+        path: "student_id",
+        populate: ["basic_info_id", "contact_info_id"],
+      })
+      .populate("fees_id")
+      .populate("class_id");
+
+    const workbook = new Exceljs.Workbook();
+    const worksheet = workbook.addWorksheet("Student");
+    worksheet.columns = [
+      // { headers: "S.no", key: "student_id", width: "10" },
+      { header: "S_no", key: "S_No", width: "10" },
+      { header: "Class_Name", key: "Class_Name", width: "10" },
+      { header: "Name", key: "Name", width: "10" },
+      { header: "Phone", key: "Phone", width: "10" },
+      { header: "Total Fee", key: "Total Fee", width: "10" },
+      { header: "Pending", key: "Pending", width: "10" },
+    ];
+
+    let count = 1;
+    let className = ""
+    academicID.forEach(student => {
+      (student).student_id = count;
+      className = student.class_id.class_name
+      const Student_details = student
+      worksheet.addRow({
+        "S_No": Student_details.student_id.student_id,
+        "Class_Name": className,
+        "Name" : Student_details.student_id.basic_info_id.full_name,
+        "Phone" : Student_details.student_id.contact_info_id.whatsapp_no,
+        "Total Fee" : Student_details.fees_id.net_fees,
+        "Pending" : Student_details.fees_id.pending_amount,
+      })
+      count += 1;
+    })
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true }
+    })
+    const homeDir = require('os').homedir(); // See: https://www.npmjs.com/package/os
+    const desktopDir = `${homeDir}/Downloads`;
+
+    const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}.xlsx`)
+    console.log(desktopDir);
+  
+
+    return res.status(200).json({
+      success: true,
+      message: "Data Export",
+    });
+  } catch (error) {
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
