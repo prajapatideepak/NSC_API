@@ -1,12 +1,13 @@
 const staffs = require("../../models/staff");
 const BasicInfo = require("../../models/basicinfo");
+const FeesReceipt = require("../../models/feesReceipt");
 const ContactInfo = require("../../models/contactinfo");
 const transactions = require("../../models/transaction");
 const salary_receipt = require("../../models/salaryReceipt");
 const hourly_salary = require("../../models/hourlySalary");
-const monthly_salary = require("../../models/monthlySalary");
-const admin = require("../../models/admin");
-const bcrypt = require("bcrypt");
+const monthly_salary = require("../../models/monthlySalary")
+const Admin = require("../../models/admin")
+const bcrypt = require('bcrypt');
 
 const { default: mongoose } = require("mongoose");
 const { populate } = require("../../models/admin");
@@ -15,174 +16,152 @@ const { populate } = require("../../models/admin");
 //-------------- ALL SALARY RECIEPT ------------------
 // ---------------------------------------------------
 function allSalary(req, res) {
-  salary_receipt
-    .find()
-    .then((result) => {
-      res.status(200).json({
-        recieptdata: result,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        error: err,
-      });
-    });
+    salary_receipt.find()
+        .then(result => {
+            res.status(200).json({
+                recieptdata: result
+            });
+
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            })
+        })
 }
 
 // ---------------------------------------------------
-//-------------- GEN SALARY RECIEPT ------------------
+//-------------- GENERATE SALARY RECIEPT ------------------
 // ---------------------------------------------------
 async function salaryFaculty(req, res) {
-  try {
-    const {
-      is_by_cheque,
-      is_by_cash,
-      is_by_upi,
-      cheque_no,
-      upi_no,
-      amount,
-      is_hourly,
-      total_hours,
-      rate_per_hour,
-      total_amount,
-      staff_id,
-    } = req.body;
+    try {
+        const { is_by_cheque, is_by_cash, is_by_upi, cheque_no, upi_no, amount, is_hourly, total_hours, rate_per_hour, total_amount, staff_id, admin, } = req.body
+        console.log(req.body)
+        const admin_details = await Admin.findOne({ username: admin })
+        console.log(admin_details)
+        
+        const salaryreceipts = await salary_receipt.find()
+        const fees_receipts = await FeesReceipt.find();
+        const salaryreceipt_id =
+        fees_receipts.length + salaryreceipts.length + 1 + 1000;
 
-    const admin_id = await admin.findOne({
-      admin_id: "6318229dfc5b517b0390a35a",
-    });
+        const Salary = await transactions.create({
+            is_by_cheque, is_by_cash, is_by_upi, cheque_no, upi_no, amount
+        });
 
-    const salaryreceipts = await salary_receipt.find();
+        const salaryreceipt = await salary_receipt.create({
+            salary_receipt_id: salaryreceipt_id,
+            staff_id: staff_id,
+            admin_id: admin_details,
+            transaction_id: Salary,
+            is_hourly: is_hourly
 
-    const salaryreceipt_id = salaryreceipts.length + 1;
+        })
 
-    const Salary = await transactions.create({
-      is_by_cheque,
-      is_by_cash,
-      is_by_upi,
-      cheque_no,
-      upi_no,
-      amount,
-    });
+        let hourlysalary
+        let monthlysalary
+        if (is_hourly == 1) {
+            hourlysalary = await hourly_salary.create({
+                salary_receipt_id: salaryreceipt._id,
+                total_hours,
+                rate_per_hour,
+                total_amount
+            })
+        } else {
 
-    const salaryreceipt = await salary_receipt.create({
-      salary_receipt_id: salaryreceipt_id,
-      staff_id: staff_id,
-      admin_id: admin_id,
-      transaction_id: Salary,
-      is_hourly: is_hourly,
-    });
+            monthlysalary = await monthly_salary.create({
+                salary_receipt_id: salaryreceipt._id,
+                total_amount
+            })
+        }
 
-    let hourlysalary;
-    let monthlysalary;
-    if (is_hourly == 1) {
-      hourlysalary = await hourly_salary.create({
-        salary_receipt_id: salaryreceipt._id,
-        total_hours,
-        rate_per_hour,
-        total_amount,
-      });
-    } else {
-      monthlysalary = await monthly_salary.create({
-        salary_receipt_id: salaryreceipt._id,
-        total_amount,
-      });
+
+
+        res.status(201).json({
+            success: true,
+            data: { salaryreceipt, hourlysalary, monthlysalary },
+
+            message: "Successfully regiser"
+        });
+    } catch (error) {
+        res.status(500).json(error + " " + error.message);
     }
-
-    res.status(201).json({
-      success: true,
-      data: { salaryreceipt, hourlysalary, monthlysalary },
-
-      message: "Successfully regiser",
-    });
-  } catch (error) {
-    res.status(500).json(error + " " + error.message);
-  }
 }
 
 // -------------------------------------------------------------------------------------------
 // -------------- SINGLE FACULTY SALARY DETAILS SEARCH BY FACULTY ID  ------------------------
 // ------------------------------------------------------------------------------------------
-async function getFaculty(req, res) {
-  try {
-    let staff_Details;
-    staff_Details = await salary_receipt
-      .find({ staff_id: req.params.id })
-      .populate("transaction_id")
-      .populate({
-        path: "staff_id",
-        populate: ["basic_info_id", "contact_info_id"],
-      });
-    res.status(200).json({
-      success: true,
+// async function getFaculty(req, res) {
 
-      staff_Details,
-    });
-  } catch (error) {
-    return res.status(500).send(error.stack);
-  }
-}
+//     try {
+
+//         let staff_Details;
+//         staff_Details = await salary_receipt.find({ staff_id: req.params.id })
+//             .populate("transaction_id").populate({ path: "staff_id", populate: ["basic_info_id", "contact_info_id"] })
+//         res.status(200).json({
+//             success: true,
+
+//             staff_Details,
+
+
+//         });
+//     } catch (error) {
+//         return res.status(500).send(error.stack);
+//     }
+// }
 
 // ------------------------------------------------------------------------------------------
 // -------------- SINGLE FACULTY TOTAL SALARY RECIEPT  --------------------------------------
 // ------------------------------------------------------------------------------------------
 async function getFacultyhistory(req, res) {
-  try {
-    let staff_History;
-    staff_History = await salary_receipt
-      .find({ staff_id: req.params.id })
-      .populate("admin_id")
-      .populate("transaction_id")
-      .populate("staff_id");
+    try {
 
-    res.status(200).json({
-      success: true,
+        let staff_History;
+        staff_History = await salary_receipt.find({ staff_id: req.params.id }).populate("admin_id").populate("transaction_id").populate("staff_id")
 
-      staff_History,
-    });
-  } catch (error) {
-    return res.status(500).send(error.stack);
-  }
+        res.status(200).json({
+            success: true,
+
+            staff_History
+
+        });
+    } catch (error) {
+        return res.status(500).send(error.stack);
+    }
 }
 
 // ---------------------------------------------------------------------------
 //-------------- SALARY RECIEPT SEARCH BY SALARY RECIEPT ID  ------------------
 // ---------------------------------------------------------------------------
 async function getsalary(req, res) {
-  try {
-    let hourlysalary;
-    let monthlysalary;
-    let staff_details;
-    const getdetails = await salary_receipt
-      .findOne({ salary_receipt_id: req.params.salary_receipt_id })
-      .populate("transaction_id")
-      .populate({
-        path: "staff_id",
-        populate: ["basic_info_id", "contact_info_id"],
-      })
-      .populate("admin_id");
-    if (getdetails.is_hourly == 1) {
-      hourlysalary = await hourly_salary.findOne({
-        salary_receipt_id: getdetails._id,
-      });
-    } else {
-      monthlysalary = await monthly_salary.findOne({
-        salary_receipt_id: getdetails._id,
-      });
-    }
+    try {
+        let hourlysalary;
+        let monthlysalary;
+        let staff_details;
+        const getdetails = await salary_receipt.findOne({ salary_receipt_id: req.params.salary_receipt_id })
+            .populate("transaction_id")
+            .populate({ path: "staff_id", populate: ["basic_info_id", "contact_info_id"] })
+            .populate({ path: "admin_id", populate: ["staff_id"] })
+        if (getdetails.is_hourly == 1) {
+            hourlysalary = await hourly_salary.findOne({ salary_receipt_id: getdetails._id })
+        } else {
+            monthlysalary = await monthly_salary.findOne({ salary_receipt_id: getdetails._id })
+        };
 
-    res.status(200).json({
-      success: true,
-      data: {
-        receipt_details: { getdetails, hourlysalary, monthlysalary },
-      },
-    });
-  } catch (error) {
-    return res.status(500).send(error.stack);
-  }
-  // const getdetails = salary_receipt.findById(req.params.id)
-  // .populate("salary_receipt_id");
+        res.status(200).json({
+            success: true,
+            data: {
+                receipt_details: { getdetails, hourlysalary, monthlysalary }
+
+
+            }
+        });
+
+
+    } catch (error) {
+        return res.status(500).send(error.stack);
+    }
 }
 
 // ---------------------------------------------------
@@ -202,24 +181,12 @@ async function updateStaffReceipt(req, res, next) {
       upi_no,
       amount,
       admin_id,
-      security_pin,
     } = req.body;
-
-    // const admin_details = await admin.findById(salary_receipt_id.admin_id);
-
-    // const isMatch = await bcrypt.compare(security_pin, admin_details.security_pin);
-
-    // if(!isMatch) {
-    //     return res.status(200).json({
-    //         success: false,
-    //         message: 'Please enter valid PIN'
-    //     });
-    // }
 
     const salary_receipt_details = await salary_receipt.findOneAndUpdate(
       { salary_receipt_id },
       {
-        // admin_id: admin_details._id,
+        admin_id,
         is_hourly,
         date: Date.now(),
       }
@@ -285,10 +252,10 @@ async function updateStaffReceipt(req, res, next) {
 }
 
 module.exports = {
-  salaryFaculty,
-  allSalary,
-  getsalary,
-  updateStaffReceipt,
-  getFaculty,
-  getFacultyhistory,
+    salaryFaculty,
+    allSalary,
+    getsalary,
+    updateStaffReceipt,
+    // getFaculty,
+    getFacultyhistory,
 };

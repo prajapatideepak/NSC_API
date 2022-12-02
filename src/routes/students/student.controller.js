@@ -134,7 +134,7 @@ async function registerStudent(req, res, next) {
       });
 
       const fees = await Fees.create({
-        discount,
+        discount : discount == null || discount == undefined ? 0 : discount,
         net_fees: net_fees,
         pending_amount: net_fees,
       });
@@ -158,6 +158,7 @@ async function registerStudent(req, res, next) {
         //201 = Created successfully
         success: true,
         message: "Student registration successfull",
+        student_id: student.student_id
       });
     });
   } catch (error) {
@@ -169,79 +170,78 @@ async function registerStudent(req, res, next) {
 //---------------- GET ALL STUDENT OF ALL CLASS ---------------
 //-------------------------------------------------------------
 async function getAllStudents(req, res) {
-    try {
+  try {
 
-      const is_primary = req.body
-      console.log(req.body)
+    const is_primary = req.body.is_primary == 'primary' ? 0 : 1;
 
-      let student_data = await Student.aggregate([
-        {$match:{is_cancelled: 0}},
-        {
-            $lookup:{
-                from: "basic_infos",
-                localField: "basic_info_id",
-                foreignField: "_id",
-                as: "basic_info"
-            }
+    let student_data = await Student.aggregate([
+      { $match: { is_cancelled: 0 } },
+      {
+        $lookup: {
+          from: "basic_infos",
+          localField: "basic_info_id",
+          foreignField: "_id",
+          as: "basic_info"
+        }
+      },
+      {
+        $lookup: {
+          from: "contact_infos",
+          localField: "contact_info_id",
+          foreignField: "_id",
+          as: "contact_info"
         },
-        {
-            $lookup:{
-                from: "contact_infos",
-                localField: "contact_info_id",
+      },
+      {
+        $lookup: {
+          from: "academics",
+          localField: "_id",
+          foreignField: "student_id",
+          as: "academics",
+          let: { class_id: 'class_id' },
+          pipeline: [
+            { $limit: 1 },
+            {
+              $lookup: {
+                from: "classes",
+                localField: "class_id",
                 foreignField: "_id",
-                as: "contact_info"
-            },
-        },
-        {
-            $lookup:{
-                from: "academics",
-                localField: "_id",
-                foreignField: "student_id",
-                as: "academics",
-                let:{class_id: 'class_id'},
+                as: "class",
                 pipeline:[
-                    { $limit: 1 },
                     {
-                        $lookup:{
-                            from: "classes",
-                            localField: "class_id",
-                            foreignField: "_id",
-                            as: "class",
-                            // pipeline:[
-                            //     {
-                            //         $match: {
-                            //             is_active: 1, 
-                            //             is_primary : is_primary
-                            //         }
-                            //     }
-                            // ]
-                        },
-                    },
-                    {
-                        $lookup:{
-                            from: "fees",
-                            localField: "fees_id",
-                            foreignField: "_id",
-                            as: "fees"
+                        $match: {
+                            is_active: 1, 
+                            is_primary
                         }
-                        
                     }
                 ]
+              },
             },
-        }
+            {
+              $lookup: {
+                from: "fees",
+                localField: "fees_id",
+                foreignField: "_id",
+                as: "fees"
+              }
+
+            }
+          ]
+        },
+      }
     ]);
-      res.status(200).json({
-        success: true,
-        data: student_data,
-        message: "Display successfully"
-      })
-      
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      })
-    }
+    res.status(200).json({
+      success: true,
+      data: student_data,
+      message: "Display successfully"
+    })
+
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    })
+  }
 
 }
 
@@ -457,9 +457,7 @@ async function updateStudentDetails(req, res, next) {
       if (err) {
         return res.status(500).json({ success: false, message: err.message });
       }
-
       let photo = "";
-
       if (
         files.photo.originalFilename != "" &&
         files.photo.size != 0 &&
@@ -684,6 +682,8 @@ async function transerStudentsToNewClass(req, res, next) {
     next(error);
   }
 }
+
+
 
 module.exports = {
   registerStudent,

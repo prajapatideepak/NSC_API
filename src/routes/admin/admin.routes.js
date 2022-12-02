@@ -6,17 +6,19 @@ const {
   httpLoginRequest,
   httpUpdateAdmin,
   httpGetadmin,
-  httpVerifySuperAdmin,
   httpGetAllAdmin,
   httpChangePassword,
   httpChangeByAdmin,
   httpSetDefault,
+  httpVerifySuperAdmin,
+  httpAdminpinverify
 } = require("./admin.controller");
 
 const adminRouter = express.Router();
 
 adminRouter.put("/", httpUpdateAdmin);
 adminRouter.post("/", httpInsertAdmin);
+adminRouter.post("/pinverify", httpAdminpinverify);
 adminRouter.get("/", httpGetadmin);
 adminRouter.post("/login", httpLoginRequest);
 adminRouter.post("/verify", httpVerifySuperAdmin);

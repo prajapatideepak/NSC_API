@@ -131,6 +131,7 @@ async function httpLoginRequest(req, res) {
     return res.json({ error: `${error}` });
   }
 }
+
 async function httpVerifySuperAdmin(req, res) {
   const superAdminData = req.body;
   if (!superAdminData.username || !superAdminData.password) {
@@ -158,6 +159,37 @@ async function httpVerifySuperAdmin(req, res) {
       return res.status(200).json({ success: "verified" });
     } else {
       return res.status(400).json({ error: "Invalid username or Password" });
+    }
+  } catch (error) {
+    return res.json({ ok: false, error: `${error}` });
+  }
+}
+
+
+async function httpAdminpinverify(req, res) {
+  const loginData = req.body;
+  console.log(req.body)
+  if (!loginData.security_pin) {
+    return res.status(400).json({ ok: false, error: "Please Enter Value" });
+  }
+
+  try {
+    const adminData = await getAdminByUsername(loginData.security_pin);
+
+    if (!adminData) {
+      return res.status(400).json({
+        ok: false,
+        error: "User Not found",
+      });
+    }
+
+    if (bcrypt.compare(loginData.security_pin)) {
+      const token = await createToken(loginData.security_pin);
+      return res
+        .status(200)
+        .json({ ok: true, success: "Login succesfully", token: token });
+    } else {
+      return res.status(400).json({ ok: false, error: "Incorrect Password" });
     }
   } catch (error) {
     return res.json({ ok: false, error: `${error}` });
@@ -247,4 +279,6 @@ module.exports = {
   httpUpdateAdmin,
   httpVerifySuperAdmin,
   httpSetDefault,
+  httpVerifySuperAdmin,
+  httpAdminpinverify
 };
