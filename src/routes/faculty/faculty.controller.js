@@ -130,9 +130,10 @@ async function Exportallfaculty(req, res) {
     const workbook = new Exceljs.Workbook();
     const worksheet = workbook.addWorksheet("Staff");
     worksheet.columns = [
-      { header: "Staff_Name", key: "Staff_Name", width: "10" },
-      { header: "Staff_Phone", key: "Staff_Phone", width: "10" },
-      { header: "Staff_Role", key: "Staff_Role", width: "10" },
+      { header: "Name", key: "Name", width: "10" },
+      { header: "Gender", key: "Gender", width: "10" },
+      { header: "Phone", key: "Phone", width: "10" },
+      { header: "Role", key: "Role", width: "10" },
     ];
 
     let count = 1;
@@ -140,9 +141,10 @@ async function Exportallfaculty(req, res) {
       (faculty)._id = count;
       console.log(faculty)
       worksheet.addRow({
-        "Staff_Name": faculty.basic_info_id.full_name,
-        "Staff_Phone": faculty.contact_info_id.whatsapp_no,
-        "Staff_Role": faculty.role
+        "Name": faculty.basic_info_id.full_name,
+        "Gender": faculty.basic_info_id.gender,
+        "Phone": faculty.contact_info_id.whatsapp_no,
+        "Role": faculty.role
       })
       count += 1;
     })
@@ -153,7 +155,7 @@ async function Exportallfaculty(req, res) {
     const homeDir = require('os').homedir(); // See: https://www.npmjs.com/package/os
     const desktopDir = `${homeDir}/Downloads`;
 
-    const data = await workbook.xlsx.writeFile(`${desktopDir}/All_Faculty.xlsx`)
+    const data = await workbook.xlsx.writeFile(`${desktopDir}/All_Staff.xlsx`)
     console.log(desktopDir);
 
     return res.status(200).json({

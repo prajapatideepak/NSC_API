@@ -344,6 +344,7 @@ exports.exportStudentInClass = async (req, res, next) => {
       { header: "S_no", key: "S_No", width: "10" },
       { header: "Class_Name", key: "Class_Name", width: "10" },
       { header: "Name", key: "Name", width: "10" },
+      { header: "Gender", key: "Gender", width: "10" },
       { header: "Phone", key: "Phone", width: "10" },
       { header: "Total Fee", key: "Total Fee", width: "10" },
       { header: "Paidup", key: "Paidup", width: "10" },
@@ -360,6 +361,7 @@ exports.exportStudentInClass = async (req, res, next) => {
         "S_No": Student_details.student_id.student_id,
         "Class_Name": className,
         "Name" : Student_details.student_id.basic_info_id.full_name,
+        "Gender" : Student_details.student_id.basic_info_id.gender,
         "Phone" : Student_details.student_id.contact_info_id.whatsapp_no,
         "Total Fee" : Student_details.fees_id.net_fees,
         "Paidup" : Student_details.fees_id.net_fees - Student_details.fees_id.pending_amount,
@@ -408,10 +410,10 @@ exports.exportPendingStudentInClass = async (req, res, next) => {
     const workbook = new Exceljs.Workbook();
     const worksheet = workbook.addWorksheet("Student");
     worksheet.columns = [
-      // { headers: "S.no", key: "student_id", width: "10" },
       { header: "S_no", key: "S_No", width: "10" },
       { header: "Class_Name", key: "Class_Name", width: "10" },
       { header: "Name", key: "Name", width: "10" },
+      { header: "Gender", key: "Gender", width: "10" },
       { header: "Phone", key: "Phone", width: "10" },
       { header: "Total Fee", key: "Total Fee", width: "10" },
       { header: "Pending", key: "Pending", width: "10" },
@@ -427,6 +429,7 @@ exports.exportPendingStudentInClass = async (req, res, next) => {
         "S_No": Student_details.student_id.student_id,
         "Class_Name": className,
         "Name" : Student_details.student_id.basic_info_id.full_name,
+        "Gender" : Student_details.student_id.basic_info_id.gender,
         "Phone" : Student_details.student_id.contact_info_id.whatsapp_no,
         "Total Fee" : Student_details.fees_id.net_fees,
         "Pending" : Student_details.fees_id.pending_amount,
