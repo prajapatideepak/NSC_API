@@ -35,8 +35,10 @@ async function httpGetSalaryReport(req, res) {
 }
 
 async function httpGetMonthlyReport(req, res) {
+  const section = req.params.section;
+  console.log(section);
   try {
-    const data = await getYearlyReport();
+    const data = await getYearlyReport(section);
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({

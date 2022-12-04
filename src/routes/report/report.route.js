@@ -9,5 +9,5 @@ const reportRouter = express.Router();
 
 reportRouter.get("/", httpGetReport);
 reportRouter.get("/salary", httpGetSalaryReport);
-reportRouter.get("/month", httpGetMonthlyReport);
-module.exports = reportRouter;
+reportRouter.get("/month/:section", httpGetMonthlyReport);
+module.exports = reportRouter;  

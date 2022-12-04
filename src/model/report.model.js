@@ -113,7 +113,7 @@ async function GetSalaryReport() {
   return SalaryData;
 }
 
-async function getYearlyReport() {
+async function getYearlyReport(section) {
   const MonthlyData = await fees_receipts.aggregate([
     {
       $lookup: {
@@ -221,10 +221,9 @@ async function getYearlyReport() {
   var Years = {};
 
   // Years = Object.assign(Years, { 2021: obj });
-  console.log("fees", MonthlyData[0].fees[0].academics[0].class[0].is_primary);
 
   const filterPrimary = MonthlyData.filter((m) => {
-    return m.fees[0].academics[0].class[0].is_primary === 0;
+    return m?.fees[0].academics[0].class[0].is_primary === section;
   });
 
   const filterData = filterPrimary.map((m) => {
