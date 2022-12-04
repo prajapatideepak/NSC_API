@@ -123,6 +123,34 @@ async function getYearlyReport() {
         as: "transaction",
       },
     },
+    {
+      $lookup: {
+        from: "fees",
+        localField: "fees_id",
+        foreignField: "_id",
+        as: "fees",
+        pipeline: [
+          {
+            $lookup: {
+              from: "academics",
+              localField: "_id",
+              foreignField: "fees_id",
+              as: "academics",
+              pipeline: [
+                {
+                  $lookup: {
+                    from: "classes",
+                    localField: "class_id",
+                    foreignField: "_id",
+                    as: "class",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
   ]);
 
   const obj = {
@@ -190,37 +218,36 @@ async function getYearlyReport() {
     },
   };
 
-  var Years = {}  ;
+  var Years = {};
 
   // Years = Object.assign(Years, { 2021: obj });
+  console.log("fees", MonthlyData[0].fees[0].academics[0].class[0].is_primary);
 
-  if (Years[2012]) {
-    console.log("he");
-  } else {
-    console.log("nahi he");
-  }
+  const filterPrimary = MonthlyData.filter((m) => {
+    return m.fees[0].academics[0].class[0].is_primary === 0;
+  });
 
-  const filterData = MonthlyData.map((m) => {
+  const filterData = filterPrimary.map((m) => {
     let mon = new Date(m.date).getMonth() + 1;
     let y = new Date(m.date).getFullYear();
 
     if (!Years[y]) {
-      console.log("ye nahi he");
       Years[y] = JSON.parse(JSON.stringify(obj));
       // Object.assign(Years[y], obj)
     }
-
-    console.log("new Year", Years);
 
     if (Years[y][mon]?.Month) {
       Years[y][mon].value += m?.transaction[0]?.amount;
       Years[y][mon].noOfTransaction++;
     }
 
-    console.log(`Default Assign`, obj);
     return mon;
   });
 
+  if (filterPrimary.length < 1) {
+    let y = new Date().getFullYear();
+    Years[y] = JSON.parse(JSON.stringify(obj));
+  }
   return Years;
 }
 
