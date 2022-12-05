@@ -165,10 +165,9 @@ async function httpVerifySuperAdmin(req, res) {
   }
 }
 
-
 async function httpAdminpinverify(req, res) {
   const loginData = req.body;
-  console.log(req.body)
+  console.log(req.body);
   if (!loginData.security_pin) {
     return res.status(400).json({ ok: false, error: "Please Enter Value" });
   }
@@ -199,6 +198,7 @@ async function httpAdminpinverify(req, res) {
 async function httpUpdateAdmin(req, res) {
   const token = req.headers.authorization;
   const data = req.body;
+  console.log("updated", data);
   if (!token) {
     return res.status(400).json({
       ok: false,
@@ -280,5 +280,5 @@ module.exports = {
   httpVerifySuperAdmin,
   httpSetDefault,
   httpVerifySuperAdmin,
-  httpAdminpinverify
+  httpAdminpinverify,
 };

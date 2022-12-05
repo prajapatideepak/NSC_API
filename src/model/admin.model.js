@@ -52,22 +52,21 @@ async function updateAdminById(userID, data) {
 
   console.log(admins);
   const upateAdmin = await admin.findOneAndUpdate(
-    { username: data.username },
+    { username: userID },
     { security_pin: data.security_pin }
   );
 
   const updateBasicInfo = await basicinfo.findOneAndUpdate(
     { _id: admins.staff_id.basic_info_id },
-    { full_name: basic_info_id.full_name }
+    { full_name: data.full_name }
   );
 
   const updateContactInfo = await contactinfo.findOneAndUpdate(
     { _id: admins.staff_id.contact_info_id },
     {
-      email: contact_info_id.email,
-      whatsapp_no: contact_info_id.whatsapp_no,
-      alternative_no: contact_info_id.alternative_no,
-      address: contact_info_id.address,
+      email: data.email,
+      whatsapp_no: data.whatsapp_no,
+      address: data.address,
     }
   );
 
