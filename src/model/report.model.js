@@ -61,7 +61,6 @@ async function GetReport() {
   ]);
 
   const current_Date = new Date();
-  console.log("Date", current_Date.getDate());
   current_Date.setDate(current_Date.getDate());
 
   filterData = await data.filter(
@@ -110,6 +109,7 @@ async function GetSalaryReport() {
     },
   ]);
 
+  SalaryData.reverse();
   return SalaryData;
 }
 
