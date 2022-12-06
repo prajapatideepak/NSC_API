@@ -261,16 +261,15 @@ exports.transferClasses = async (req, res, next) => {
     //Creating new classes
     classes_details.forEach(async (element) => {
       await Classes.create({
-        batch_start_year: element.batch_start_year,
-        batch_end_year: element.batch_end_year,
+        batch_start_year: element.batch_start_year + 1,
+        batch_end_year: element.batch_end_year + 1,
         class_name: element.class_name,
-        total_student: element.total_student,
+        total_student: 0,
         fees: element.fees,
         is_primary: element.is_primary,
         stream: element.stream,
         medium: element.medium,
-        is_active: element.is_active,
-        date: element.date,
+        is_active: 1
       });
     });
 

@@ -14,7 +14,7 @@ async function insertadmin(body) {
 
   const contact_info_id = await contactinfo.create({
     whatsapp_no: body.whatsapp_no,
-    alternative_no: body.alternative_no,
+    alternate_no: body.alternate_no ? body.alternate_no : '',
     email: body.email,
     address: body.address,
   });
@@ -66,6 +66,7 @@ async function updateAdminById(userID, data) {
     {
       email: data.email,
       whatsapp_no: data.whatsapp_no,
+      alternate_no: data.alternate_no ? data.alternate_no : '',
       address: data.address,
     }
   );
