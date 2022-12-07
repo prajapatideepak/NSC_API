@@ -114,7 +114,6 @@ exports.displayClass = async (req, res, next) => {
   try {
     const classes = await Classes.find({
       is_active: 1,
-      batch_start_year: { $eq: new Date().getFullYear() },
     });
 
     if (!classes[0]) {
