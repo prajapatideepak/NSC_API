@@ -63,12 +63,8 @@ async function GetReport() {
   const current_Date = new Date();
   current_Date.setDate(current_Date.getDate());
 
-  filterData = await data.filter(
-    (recipet) => new Date(recipet.date).getTime() < current_Date.getTime()
-  );
-  console.log(filterData.length);
-  filterData.reverse();
-  return filterData;
+  data.reverse();
+  return data;
 }
 
 async function GetSalaryReport() {
@@ -222,8 +218,9 @@ async function getYearlyReport(section) {
 
   // Years = Object.assign(Years, { 2021: obj });
 
+  console.log("m len", MonthlyData);
   const filterPrimary = MonthlyData.filter((m) => {
-    return m?.fees[0].academics[0].class[0].is_primary === section;
+    return m?.fees[0].academics[0].class[0].is_primary == section;
   });
 
   const filterData = filterPrimary.map((m) => {
