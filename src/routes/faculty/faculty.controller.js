@@ -69,7 +69,7 @@ async function registerFaculty(req, res) {
 
           const contact_info_id = await ContactInfo.create({
             whatsapp_no,
-            alternate_no,
+            alternate_no : alternate_no != '' ? alternate_no : '',
             email,
             address,
             joining_date

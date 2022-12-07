@@ -7,6 +7,7 @@ const {
 async function httpGetReport(req, res) {
   try {
     const data = await GetReport();
+    console.log(data)
     return res.status(200).json({
       ok: true,
       data: data,
@@ -36,7 +37,6 @@ async function httpGetSalaryReport(req, res) {
 
 async function httpGetMonthlyReport(req, res) {
   const section = req.params.section;
-  console.log(section);
   try {
     const data = await getYearlyReport(section);
     return res.status(200).json(data);
