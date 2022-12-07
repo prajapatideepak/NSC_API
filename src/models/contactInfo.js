@@ -12,8 +12,6 @@ const contactInfoSchema = new mongoose.Schema({
     },
     alternate_no:{
         type: String,
-        maxLength: [10, "Alternate number should be of 10 digits"],
-        minLength: [10, "Alternate number should be of 10 digits"]
     },
     email:{
         type: String,
