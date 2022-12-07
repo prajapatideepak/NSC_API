@@ -14,7 +14,7 @@ async function insertadmin(body) {
 
   const contact_info_id = await contactinfo.create({
     whatsapp_no: body.whatsapp_no,
-    alternate_no: body.alternate_no ? body.alternate_no : '',
+    alternate_no: body.alternate_no ? body.alternate_no : "",
     email: body.email,
     address: body.address,
   });
@@ -58,7 +58,7 @@ async function updateAdminById(userID, data) {
 
   const updateBasicInfo = await basicinfo.findOneAndUpdate(
     { _id: admins.staff_id.basic_info_id },
-    { full_name: data.full_name }
+    { full_name: data.full_name, dob: data.dob }
   );
 
   const updateContactInfo = await contactinfo.findOneAndUpdate(
@@ -66,7 +66,7 @@ async function updateAdminById(userID, data) {
     {
       email: data.email,
       whatsapp_no: data.whatsapp_no,
-      alternate_no: data.alternate_no ? data.alternate_no : '',
+      alternate_no: data.alternate_no ? data.alternate_no : "",
       address: data.address,
     }
   );
