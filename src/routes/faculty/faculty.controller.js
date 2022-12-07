@@ -84,7 +84,7 @@ async function registerFaculty(req, res) {
 
           res.status(201).json({
             success: true,
-            data: Staff, basic_info_id,
+            data: Staff, basic_info_id,contact_info_id,
             message: "Successfully regiser"
           });
         })
@@ -139,7 +139,6 @@ async function Exportallfaculty(req, res) {
     let count = 1;
     allfaculty.forEach(faculty => {
       (faculty)._id = count;
-      console.log(faculty)
       worksheet.addRow({
         "Name": faculty.basic_info_id.full_name,
         "Gender": faculty.basic_info_id.gender,
@@ -156,8 +155,6 @@ async function Exportallfaculty(req, res) {
     const desktopDir = `${homeDir}/Downloads`;
 
     const data = await workbook.xlsx.writeFile(`${desktopDir}/All_Staff.xlsx`)
-    console.log(desktopDir);
-
     return res.status(200).json({
       success: true,
       message: "Data Export",
