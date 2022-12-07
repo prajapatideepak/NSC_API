@@ -172,7 +172,7 @@ async function registerStudent(req, res, next) {
 async function getAllStudents(req, res) {
   try {
 
-    const is_primary = req.body.is_primary == 'primary' ? 0 : 1;
+    const is_primary = req.body.is_primary == 'primary' ? 1 : 0;
 
     let student_data = await Student.aggregate([
       { $match: { is_cancelled: 0 } },
