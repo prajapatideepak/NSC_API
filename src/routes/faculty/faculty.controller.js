@@ -243,6 +243,7 @@ async function editFaculty(req, res) {
         full_name,
         email,
         whatsapp_no,
+        alternate_no,
         dob,
         gender,
         role,
@@ -279,6 +280,7 @@ async function editFaculty(req, res) {
 
       const contact_info_id = await ContactInfo.findByIdAndUpdate(staff_details.contact_info_id, {
         whatsapp_no,
+        alternate_no,
         address,
         email
       })

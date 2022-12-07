@@ -218,7 +218,6 @@ async function getYearlyReport(section) {
 
   // Years = Object.assign(Years, { 2021: obj });
 
-  console.log("m len", MonthlyData);
   const filterPrimary = MonthlyData.filter((m) => {
     return m?.fees[0].academics[0].class[0].is_primary == section;
   });

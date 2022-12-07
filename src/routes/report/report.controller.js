@@ -7,7 +7,6 @@ const {
 async function httpGetReport(req, res) {
   try {
     const data = await GetReport();
-    console.log(data)
     return res.status(200).json({
       ok: true,
       data: data,
