@@ -29,11 +29,18 @@ async function httpInsertAdmin(req, res) {
   ) {
     return res.status(400).json({
       ok: false,
-      error: "Missing Student Property",
+      error: "Fill the required fields",
     });
   }
 
   try {
+    const user = await getAdminByUsername(admin.username.trim())
+    if(user){
+      return res.status(500).json({
+        ok: false,
+        error: 'Admin already exist with this username',
+      });
+    }
     const hasedPassword = await bcrypt.hash(admin.password, 10);
 
     admin.password = hasedPassword;
