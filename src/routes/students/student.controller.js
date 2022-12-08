@@ -649,11 +649,14 @@ async function transerStudentsToNewClass(req, res, next) {
     student_ids.forEach(async (student_id) => {
       const student_info = await Student.findOne({ student_id });
 
-      const last_academic_detail = await Academic.findOne({
+      const last_academic_detail = await Academic.findOneAndUpdate({
         student_id: student_info._id,
+        is_transferred: 0
+      },{
+        is_transferred: 1
       })
-        .sort({ date: -1 })
-        .populate("fees_id");
+      .sort({ date: -1 })
+      .populate("fees_id");
 
       const new_class_info = await Classes.findById(class_id);
 
