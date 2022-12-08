@@ -132,9 +132,9 @@ async function registerStudent(req, res, next) {
         basic_info_id: basic_info_id._id,
         contact_info_id: contact_info_id._id,
       });
-
+      
       const fees = await Fees.create({
-        discount : discount == null || discount == undefined ? 0 : discount,
+        discount : discount == null || discount == undefined || discount == '' ? 0 : discount,
         net_fees: net_fees,
         pending_amount: net_fees,
       });
@@ -435,7 +435,6 @@ async function cancelStudentAdmission(req, res, next) {
     await Classes.findByIdAndUpdate(class_info._id, {
       total_student: class_info.total_student - 1,
     });
-    END;
 
     res.status(200).json({
       success: true,
@@ -509,7 +508,7 @@ async function updateStudentDetails(req, res, next) {
         admission_date,
       } = fields;
 
-      total_fees = Number(fields.total_fees);
+      total_fees = fields.total_fees;
       discount = Number(fields.discount);
 
       const student_id = req.params.student_id;

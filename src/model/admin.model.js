@@ -6,7 +6,7 @@ const basicinfo = require("../models/basicinfo");
 
 async function insertadmin(body) {
   const basic_info_id = await basicinfo.create({
-    photo: body.photo,
+    photo: "user_default@123.png",
     full_name: body.full_name,
     gender: body.gender,
     dob: body.dob,

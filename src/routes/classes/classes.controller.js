@@ -339,7 +339,7 @@ exports.exportStudentInClass = async (req, res, next) => {
     const workbook = new Exceljs.Workbook();
     const worksheet = workbook.addWorksheet("Student");
     worksheet.columns = [
-      { header: "S_no", key: "S_No", width: "10" },
+      { header: "Student ID", key: "Student ID", width: "10" },
       { header: "Class_Name", key: "Class_Name", width: "10" },
       { header: "Name", key: "Name", width: "10" },
       { header: "Gender", key: "Gender", width: "10" },
@@ -356,7 +356,7 @@ exports.exportStudentInClass = async (req, res, next) => {
       className = student.class_id.class_name
       const Student_details = student
       worksheet.addRow({
-        "S_No": Student_details.student_id.student_id,
+        "Student ID": Student_details.student_id.student_id,
         "Class_Name": className,
         "Name" : Student_details.student_id.basic_info_id.full_name,
         "Gender" : Student_details.student_id.basic_info_id.gender,
@@ -408,7 +408,7 @@ exports.exportPendingStudentInClass = async (req, res, next) => {
     const workbook = new Exceljs.Workbook();
     const worksheet = workbook.addWorksheet("Student");
     worksheet.columns = [
-      { header: "S_no", key: "S_No", width: "10" },
+      { header: "Student ID", key: "Student ID", width: "10" },
       { header: "Class_Name", key: "Class_Name", width: "10" },
       { header: "Name", key: "Name", width: "10" },
       { header: "Gender", key: "Gender", width: "10" },
@@ -424,7 +424,7 @@ exports.exportPendingStudentInClass = async (req, res, next) => {
       className = student.class_id.class_name
       const Student_details = student
       worksheet.addRow({
-        "S_No": Student_details.student_id.student_id,
+        "Student ID": Student_details.student_id.student_id,
         "Class_Name": className,
         "Name" : Student_details.student_id.basic_info_id.full_name,
         "Gender" : Student_details.student_id.basic_info_id.gender,
