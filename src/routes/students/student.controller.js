@@ -7,6 +7,7 @@ const Classes = require("../../models/classes");
 const FeesReceipt = require("../../models/feesReceipt");
 const formidable = require("formidable");
 const fs = require("fs");
+const EmailSender = require("../mail/studentMail");
 
 //-----------------------------------------------------
 //---------------- STUDENT REGISTRATION ---------------
@@ -132,9 +133,12 @@ async function registerStudent(req, res, next) {
         basic_info_id: basic_info_id._id,
         contact_info_id: contact_info_id._id,
       });
-      
+
       const fees = await Fees.create({
-        discount : discount == null || discount == undefined || discount == '' ? 0 : discount,
+        discount:
+          discount == null || discount == undefined || discount == ""
+            ? 0
+            : discount,
         net_fees: net_fees,
         pending_amount: net_fees,
       });
@@ -154,11 +158,12 @@ async function registerStudent(req, res, next) {
         school_name: school_name.trim(),
       });
 
+      EmailSender({ email: email, full_name: full_name.trim() });
       res.status(201).json({
         //201 = Created successfully
         success: true,
         message: "Student registration successfull",
-        student_id: student.student_id
+        student_id: student.student_id,
       });
     });
   } catch (error) {
@@ -171,8 +176,7 @@ async function registerStudent(req, res, next) {
 //-------------------------------------------------------------
 async function getAllStudents(req, res) {
   try {
-
-    const is_primary = req.body.is_primary == 'primary' ? 1 : 0;
+    const is_primary = req.body.is_primary == "primary" ? 1 : 0;
 
     let student_data = await Student.aggregate([
       { $match: { is_cancelled: 0 } },
@@ -181,15 +185,15 @@ async function getAllStudents(req, res) {
           from: "basic_infos",
           localField: "basic_info_id",
           foreignField: "_id",
-          as: "basic_info"
-        }
+          as: "basic_info",
+        },
       },
       {
         $lookup: {
           from: "contact_infos",
           localField: "contact_info_id",
           foreignField: "_id",
-          as: "contact_info"
+          as: "contact_info",
         },
       },
       {
@@ -198,7 +202,7 @@ async function getAllStudents(req, res) {
           localField: "_id",
           foreignField: "student_id",
           as: "academics",
-          let: { class_id: 'class_id' },
+          let: { class_id: "class_id" },
           pipeline: [
             { $limit: 1 },
             {
@@ -207,14 +211,14 @@ async function getAllStudents(req, res) {
                 localField: "class_id",
                 foreignField: "_id",
                 as: "class",
-                pipeline:[
-                    {
-                        $match: {
-                            is_active: 1, 
-                            is_primary
-                        }
-                    }
-                ]
+                pipeline: [
+                  {
+                    $match: {
+                      is_active: 1,
+                      is_primary,
+                    },
+                  },
+                ],
               },
             },
             {
@@ -222,29 +226,25 @@ async function getAllStudents(req, res) {
                 from: "fees",
                 localField: "fees_id",
                 foreignField: "_id",
-                as: "fees"
-              }
-
-            }
-          ]
+                as: "fees",
+              },
+            },
+          ],
         },
-      }
+      },
     ]);
     res.status(200).json({
       success: true,
       data: student_data,
-      message: "Display successfully"
-    })
-
+      message: "Display successfully",
+    });
   } catch (error) {
     res.status(400).json({
       success: false,
-      message: error.message
-    })
+      message: error.message,
+    });
   }
-
 }
-
 
 //----------------------------------------------------------------------
 //-- GETTING PARTICULAR STUDENT DETAILS BY ID, FULLNAME, WHATSAPP_NO ---
@@ -681,8 +681,6 @@ async function transerStudentsToNewClass(req, res, next) {
     next(error);
   }
 }
-
-
 
 module.exports = {
   registerStudent,
