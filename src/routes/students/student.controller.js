@@ -5,6 +5,7 @@ const Fees = require("../../models/fees");
 const Academic = require("../../models/academic");
 const Classes = require("../../models/classes");
 const FeesReceipt = require("../../models/feesReceipt");
+const Transaction = require("../../models/transaction")
 const formidable = require("formidable");
 const fs = require("fs");
 
@@ -200,7 +201,7 @@ async function getAllStudents(req, res) {
           as: "academics",
           let: { class_id: 'class_id' },
           pipeline: [
-            { $limit: 1 },
+            { $match: { is_transferred: 0 }},
             {
               $lookup: {
                 from: "classes",
@@ -295,6 +296,7 @@ async function getStudentDetails(req, res, next) {
         //getting academic details
         const academic_details = await Academic.findOne({
           student_id: item._id,
+          is_transferred: 0
         }).populate({
           path: "class_id",
           match: {
@@ -599,7 +601,7 @@ async function updateStudentDetails(req, res, next) {
 //----------------------------------------------------
 //------------------- TANSFER STUDENT ----------------
 //----------------------------------------------------
-async function transerStudentsToNewClass(req, res, next) {
+async function transferStudentsToNewClass(req, res, next) {
   try {
     const { student_ids, class_id } = req.body;
 
@@ -614,37 +616,6 @@ async function transerStudentsToNewClass(req, res, next) {
       });
     }
     // END
-
-    if (class_info.is_active && student_ids.length == 1) {
-      const student_info = await Student.findOne({
-        student_id: student_ids[0],
-      });
-
-      const fees_details = await Fees.create({
-        net_fees: class_info._id,
-        pending_amount: class_info._id,
-      });
-
-      const academic = await Academic.findOneAndUpdate(
-        { student_id: student_info._id },
-        {
-          class_id,
-          fees_id: fees_details._id,
-        }
-      ).sort({ date: -1 });
-
-      //deleting old records of fees
-      await Fees.findByIdAndDelete(academic.fees_id);
-
-      const classes = await Classes.findByIdAndUpdate(academic.class_id, {
-        $inc: { total_student: -1 },
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Student successfully transfered",
-      });
-    }
 
     student_ids.forEach(async (student_id) => {
       const student_info = await Student.findOne({ student_id });
@@ -669,7 +640,7 @@ async function transerStudentsToNewClass(req, res, next) {
       });
 
       const academic = await Academic.create({
-        class_id: class_info._id,
+        class_id: class_id,
         student_id: student_info._id,
         fees_id: fees._id,
         school_name: last_academic_detail.school_name,
@@ -685,6 +656,58 @@ async function transerStudentsToNewClass(req, res, next) {
   }
 }
 
+//----------------------------------------------------
+//-------DELETE AND TANSFER SIGNLE STUDENT -----------
+//----------------------------------------------------
+async function deleteAndTransferStudentToNewClass(req, res, next) {
+  try {
+    const { student_id, class_id } = req.body;
+
+    const class_info = await Classes.findByIdAndUpdate(class_id, {
+      $inc: { total_student: 1 },
+    });
+
+    if (!class_info) {
+      return res.status(500).json({
+        success: false,
+        message: "No selected class found",
+      });
+    }
+
+    const student_info = await Student.findOne({
+      student_id: student_id,
+    });
+
+    const fees_details = await Fees.create({
+      net_fees: class_info.fees,
+      discount: 0,
+      pending_amount: class_info.fees,
+    });
+
+    const last_academic = await Academic.findOneAndUpdate(
+      { student_id: student_info._id, is_transferred : 0 },
+      {
+        class_id,
+        fees_id: fees_details._id,
+      }
+    ).sort({ date: -1 });
+
+    //deleting old records of fees
+    const last_fees_details = await Fees.findByIdAndDelete(last_academic.fees_id);
+
+    const classes = await Classes.findByIdAndUpdate(last_academic.class_id, {
+      $inc: { total_student: -1 },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Student successfully transfered",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 
 
 module.exports = {
@@ -694,5 +717,6 @@ module.exports = {
   getStudentDetailsUniversal,
   cancelStudentAdmission,
   updateStudentDetails,
-  transerStudentsToNewClass,
+  transferStudentsToNewClass,
+  deleteAndTransferStudentToNewClass
 };

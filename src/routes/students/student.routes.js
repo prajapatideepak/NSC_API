@@ -1,5 +1,5 @@
 const express = require("express");
-const {registerStudent, getAllStudents, getStudentDetails, getStudentDetailsUniversal, updateStudentDetails, cancelStudentAdmission, transerStudentsToNewClass } = require("./student.controller");
+const {registerStudent, getAllStudents, getStudentDetails, getStudentDetailsUniversal, updateStudentDetails, cancelStudentAdmission, transferStudentsToNewClass, deleteAndTransferStudentToNewClass } = require("./student.controller");
 
 const studentRouter = express.Router();
 
@@ -15,6 +15,8 @@ studentRouter.put("/update/:student_id", updateStudentDetails);
 
 studentRouter.get("/cancel-admission/:student_id", cancelStudentAdmission);
 
-studentRouter.post("/transfer", transerStudentsToNewClass);
+studentRouter.post("/transfer", transferStudentsToNewClass);
+
+studentRouter.post("/delete-and-transfer", deleteAndTransferStudentToNewClass);
 
 module.exports = studentRouter;

@@ -232,11 +232,11 @@ async function httpChangePassword(req, res) {
   const token = req.headers.authorization;
 
   if (!data.oldpassword || !data.newpassword || !data.confirmpassword) {
-    return res.status(400).send("All Field Requird");
+    return res.status(400).send("All Fields are Required");
   }
 
   if (data.newpassword !== data.confirmpassword) {
-    return res.status(400).send("Password Did not match");
+    return res.status(400).send("Password not match");
   }
 
   try {

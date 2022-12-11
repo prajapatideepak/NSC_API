@@ -39,6 +39,7 @@ const generateReceiptFunction = async (
 
   const academic_details = await Academic.findOne({
     student_id: student_details._id,
+    is_transferred: 0
   })
     .populate({
       path: "student_id",
@@ -427,7 +428,7 @@ async function searchReceipt(req, res, next) {
           as: "academics",
           let: { class_id: "class_id" },
           pipeline: [
-            { $limit: 1 },
+            { $match: {is_transferred: 0} },
             {
               $lookup: {
                 from: "classes",
