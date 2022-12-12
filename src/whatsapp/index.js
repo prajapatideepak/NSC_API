@@ -17,18 +17,15 @@ client.on("qr", (qr) => {
 });
 
 client.on("ready", async () => {
-  console.log("Client is ready!");
   const chat = await client.getChats();
 
   client.sendMessage("916352201170@c.us", "Hello  Your Whatsapp is Hacked");
 
-  console.log(chat[0]);
 });
 
 client.on("message", (m) => {
   if (m.body === "wellbenix") {
     m.reply("Hello");
-    console.log(m);
   }
 
   if (m.body === "Wellbenix") {
@@ -38,7 +35,6 @@ client.on("message", (m) => {
 
 // Save session values to the file upon successful auth
 client.on("authenticated", (session) => {
-  console.log("Whatsapp => Authentication ");
 });
 
 client.initialize();

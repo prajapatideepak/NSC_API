@@ -35,7 +35,6 @@ const admin = new mongoose.Schema({
 })
 
 admin.methods.checkPassoword = async function (password) {
-  console.log(password);
 };
 
 module.exports = mongoose.model("admins", admin);

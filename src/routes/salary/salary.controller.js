@@ -24,7 +24,6 @@ function allSalary(req, res) {
 
         })
         .catch(err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             })
@@ -37,9 +36,7 @@ function allSalary(req, res) {
 async function salaryFaculty(req, res) {
     try {
         const { is_by_cheque, is_by_cash, is_by_upi, cheque_no, upi_no, amount, is_hourly, total_hours, rate_per_hour, total_amount, staff_id, admin, } = req.body
-        console.log(req.body)
         const admin_details = await Admin.findOne({ username: admin })
-        console.log(admin_details)
         
         const salaryreceipts = await salary_receipt.find()
         const fees_receipts = await FeesReceipt.find();

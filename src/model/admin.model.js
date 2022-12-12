@@ -46,11 +46,9 @@ async function getAdminByUsername(u) {
 }
 
 async function updateAdminById(userID, data) {
-  console.log("username", userID);
   const { basic_info_id, contact_info_id } = data;
   const admins = await admin.findOne({ username: userID }).populate("staff_id");
 
-  console.log(admins);
   const upateAdmin = await admin.findOneAndUpdate(
     { username: userID },
     { security_pin: data.security_pin }
