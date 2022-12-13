@@ -7,7 +7,14 @@ const Classes = require("../../models/classes");
 const FeesReceipt = require("../../models/feesReceipt");
 const Transaction = require("../../models/transaction")
 const formidable = require("formidable");
+const ImageKit = require("imagekit");
 const fs = require("fs");
+
+const imagekit = new ImageKit({
+    publicKey : process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey : process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint : process.env.IMAGEKIT_URL_ENDPOINT 
+});
 
 //-----------------------------------------------------
 //---------------- STUDENT REGISTRATION ---------------
@@ -39,16 +46,26 @@ async function registerStudent(req, res, next) {
 
         var oldPath = files.photo.filepath;
         var fileName = Date.now() + "_" + files.photo.originalFilename;
-        var newPath = "public/images" + "/" + fileName;
-        var rawData = fs.readFileSync(oldPath);
 
-        fs.writeFile(newPath, rawData, function (err) {
+        fs.readFile( oldPath, function (err, data) {
           if (err) {
             return res
               .status(500)
               .json({ success: false, message: err.message });
           }
-          photo = fileName.trim();
+          imagekit.upload({
+            file : data,
+            fileName : fileName, 
+            overwriteFile: true,
+            folder: '/students_profiles'
+          }, function(error, result) {
+            if(error) {
+              return res
+                .status(500)
+                .json({ success: false, message: error.message });
+            }
+            photo = result.url
+          });
         });
       }
 
@@ -458,140 +475,181 @@ async function updateStudentDetails(req, res, next) {
       if (err) {
         return res.status(500).json({ success: false, message: err.message });
       }
-      let photo = "";
-      if (
-        files.photo.originalFilename != "" &&
-        files.photo.size != 0 &&
-        fields.photo_name == ""
-      ) {
-        const ext = files.photo.mimetype.split("/")[1].trim();
+      let photo = fields.old_photo_url == fields.photo_name ? fields.old_photo_url : '';
 
-        if (files.photo.size >= 2000000) {
-          // 2000000(bytes) = 2MB
-          return res.status(400).json({
-            success: false,
-            message: "Photo size should be less than 2MB",
-          });
+      const myPromise = new Promise(async(resolve, reject) => {
+
+        //Searching and deleting old photo from imagekit
+        if (
+          fields.old_photo_url != fields.photo_name
+        ) {
+          //Searching old photo
+          const old_photo_name = fields.old_photo_url.split('/')[5];
+          let old_photo_fileId = '';
+
+            imagekit.listFiles({
+              searchQuery : `'name'="${old_photo_name}"`
+            }, function(error, result) {
+                if(error){
+                  return res.status(400).json({
+                    success: false,
+                    message: error.message,
+                  });
+                } 
+                if(result && result.length > 0) {
+                  old_photo_fileId = result[0].fileId
+
+                  //Deleting old photo
+                  imagekit.deleteFile(old_photo_fileId, function(error, result) {
+                    if(error){
+                      return res.status(400).json({
+                        success: false,
+                        message: error.message,
+                      });
+                    }
+                  });
+                }
+            });
         }
-        if (ext != "png" && ext != "jpg" && ext != "jpeg") {
-          return res.status(400).json({
-            success: false,
-            message: "Only JPG, JPEG or PNG photo is allowed",
-          });
-        }
 
-        var oldPath = files.photo.filepath;
-        var fileName = Date.now() + "_" + files.photo.originalFilename;
-        var newPath = "public/images" + "/" + fileName;
-        var rawData = fs.readFileSync(oldPath);
-
-        fs.writeFile(newPath, rawData, function (err) {
-          if (err) {
-            return res
-              .status(500)
-              .json({ success: false, message: err.message });
+        if (
+          fields.old_photo_url != fields.photo_name && fields.photo_name != ""
+        ) {
+          const ext = files.photo.mimetype.split("/")[1].trim();
+  
+          if (files.photo.size >= 2000000) {
+            // 2000000(bytes) = 2MB
+            return res.status(400).json({
+              success: false,
+              message: "Photo size should be less than 2MB",
+            });
           }
-          photo = fileName.trim();
-        });
-      }
+          if (ext != "png" && ext != "jpg" && ext != "jpeg") {
+            return res.status(400).json({
+              success: false,
+              message: "Only JPG, JPEG or PNG photo is allowed",
+            });
+          }
+  
+          var oldPath = files.photo.filepath;
+          var fileName = Date.now() + "_" + files.photo.originalFilename;
+          fs.readFile( oldPath, function (err, data) {
+            if (err) {
+              return res
+                .status(500)
+                .json({ success: false, message: err.message });
+            }
+            imagekit.upload({
+              file : data,
+              fileName : fileName, 
+              overwriteFile: true,
+              folder: '/students_profiles'
+            }, function(error, result) {
+              if(error) {
+                return res
+                  .status(500)
+                  .json({ success: false, message: error.message });
+              }
+              photo = result.url
+              resolve();
+            });
+          });
+        }
+        else{
+          resolve()
+        }
 
-      const {
-        full_name,
-        mother_name,
-        whatsapp_no,
-        alternate_no,
-        dob,
-        gender,
-        address,
-        email,
-        reference,
-        note,
-        school_name,
-        admission_date,
-      } = fields;
+      })
 
-      total_fees = fields.total_fees;
-      discount = Number(fields.discount);
-
-      const student_id = req.params.student_id;
-
-      //updating student info
-      const student = await Student.findOneAndUpdate(
-        { student_id },
-        {
-          mother_name: mother_name.trim(),
-          admission_date,
+      myPromise.then(async () => {
+        const {
+          full_name,
+          mother_name,
+          whatsapp_no,
+          alternate_no,
+          dob,
+          gender,
+          address,
+          email,
           reference,
           note,
-        }
-      );
-
-      //updating basic info
-      if (
-        (fields.photo_name == "" && photo != "") ||
-        (fields.photo_name == "user_default@123.png" && photo == "")
-      ) {
+          school_name,
+          admission_date,
+        } = fields;
+  
+        total_fees = fields.total_fees;
+        discount = Number(fields.discount);
+  
+        const student_id = req.params.student_id;
+  
+        //updating student info
+        const student = await Student.findOneAndUpdate(
+          { student_id },
+          {
+            mother_name: mother_name.trim(),
+            admission_date,
+            reference,
+            note,
+          }
+        );
+  
+        //updating basic info
         await BasicInfo.findByIdAndUpdate(student.basic_info_id, {
           photo,
           full_name: full_name.trim(),
           gender,
           dob,
         });
-      } else {
-        await BasicInfo.findByIdAndUpdate(student.basic_info_id, {
-          full_name: full_name.trim(),
-          gender,
-          dob,
+  
+        //updating contact info
+        await ContactInfo.findByIdAndUpdate(student.contact_info_id, {
+          whatsapp_no: whatsapp_no.trim(),
+          alternate_no:
+            alternate_no != "" && alternate_no != null ? alternate_no.trim() : "",
+          email: email != "" && email != null ? email.trim() : "",
+          address: address.trim(),
         });
-      }
+  
+        //fetching academic details
+        let academic = await Academic.findOneAndUpdate(
+          { student_id: student._id },
+          {
+            school_name,
+          },
+          { returnOriginal: false, new: true }
+        ).populate({
+          path: "class_id",
+          match: {
+            is_active: 1,
+          },
+        });
+  
+        //-------------calculate pending amount--------------------
+        let totalFeesPaid = 0;
+  
+        const fees_receipt = await FeesReceipt.find({
+          fees_id: academic.fees_id,
+        }).populate("transaction_id");
+  
+        fees_receipt.forEach(function (data) {
+          totalFeesPaid = totalFeesPaid + data.transaction_id.amount;
+        });
+        //---------------------------------------------------------
+  
+        const net_fees = total_fees - discount;
+        //updating fees
+        const fees = await Fees.findByIdAndUpdate(academic.fees_id, {
+          discount: discount != "" && discount != null ? discount : 0,
+          net_fees,
+          pending_amount: net_fees - totalFeesPaid,
+        });
+  
+        res.status(200).json({
+          success: true,
+          message: "Student details successfully updated",
+        });
 
-      //updating contact info
-      await ContactInfo.findByIdAndUpdate(student.contact_info_id, {
-        whatsapp_no: whatsapp_no.trim(),
-        alternate_no:
-          alternate_no != "" && alternate_no != null ? alternate_no.trim() : "",
-        email: email != "" && email != null ? email.trim() : "",
-        address: address.trim(),
-      });
-
-      //fetching academic details
-      let academic = await Academic.findOneAndUpdate(
-        { student_id: student._id },
-        {
-          school_name,
-        },
-        { returnOriginal: false, new: true }
-      ).populate({
-        path: "class_id",
-        match: {
-          is_active: 1,
-        },
-      });
-
-      //-------------calculate pending amount--------------------
-      let totalFeesPaid = 0;
-
-      const fees_receipt = await FeesReceipt.find({
-        fees_id: academic.fees_id,
-      }).populate("transaction_id");
-
-      fees_receipt.forEach(function (data) {
-        totalFeesPaid = totalFeesPaid + data.transaction_id.amount;
-      });
-      //---------------------------------------------------------
-
-      const net_fees = total_fees - discount;
-      //updating fees
-      const fees = await Fees.findByIdAndUpdate(academic.fees_id, {
-        discount: discount != "" && discount != null ? discount : 0,
-        net_fees,
-        pending_amount: net_fees - totalFeesPaid,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: "Student details successfully updated",
-      });
+      })
     }); //fomridable
   } catch (error) {
     next(error);
