@@ -15,6 +15,7 @@ const contactInfoSchema = new mongoose.Schema({
     },
     email:{
         type: String,
+        require: [true, "Please enter email"]
     },
     address:{
         type: String,

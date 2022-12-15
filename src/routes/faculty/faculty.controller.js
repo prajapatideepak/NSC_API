@@ -9,9 +9,13 @@ const admin = require("../../models/admin")
 const formidable = require('formidable');
 const fs = require('fs');
 const Exceljs = require("Exceljs");
+const ImageKit = require("imagekit");
 
-
-const { default: mongoose } = require('mongoose');
+const imagekit = new ImageKit({
+    publicKey : process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey : process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint : process.env.IMAGEKIT_URL_ENDPOINT 
+});
 
 // --------------------------------------------------------
 // -------------- REGISTER FACULTY ------------------------
@@ -39,17 +43,30 @@ async function registerFaculty(req, res) {
           if (ext != "png" && ext != "jpg" && ext != "jpeg") {
             return res.status(400).json({ success: false, message: 'Only JPG, JPEG or PNG photo is allowed' })
           }
+          
           var oldPath = files.photo.filepath;
-          var fileName = Date.now() + '_' + files.photo.originalFilename;
-          var newPath = 'public/images' + '/' + fileName;
-          var rawData = fs.readFileSync(oldPath)
-          fs.writeFile(newPath, rawData, function (err) {
+          var fileName = Date.now() + "_" + files.photo.originalFilename;
+
+          fs.readFile( oldPath, function (err, data) {
             if (err) {
-              return res.status(500).json({ success: false, message: err.message })
+              return res
+                .status(500)
+                .json({ success: false, message: err.message });
             }
-            photo = fileName.trim();
-            resolve();
-          })
+            imagekit.upload({
+              file : data,
+              fileName : fileName, 
+              overwriteFile: true,
+              folder: '/staff_profiles'
+            }, function(error, result) {
+              if(error) {
+                return res
+                  .status(500)
+                  .json({ success: false, message: error.message });
+              }
+              photo = result.url
+            });
+          });
         }
         else {
           resolve();
@@ -201,97 +218,131 @@ async function editFaculty(req, res) {
       if (err) {
         return res.status(500).json({ success: false, message: err.message });
       }
-      let photo = '';
-      if (
-        files.photo.originalFilename != "" &&
-        files.photo.size != 0 &&
-        fields.photo_name == ""
-      ) {
-        const ext = files.photo.mimetype.split("/")[1].trim();
+      let photo = fields.old_photo_url == fields.photo_name ? fields.old_photo_url : '';
 
-        if (files.photo.size >= 2000000) {
-          // 2000000(bytes) = 2MB
-          return res.status(400).json({
-            success: false,
-            message: "Photo size should be less than 2MB",
+      const myPromise = new Promise(async(resolve, reject) => {
+        //Searching and deleting old photo from imagekit
+        if(
+          fields.old_photo_url != fields.photo_name
+        ) {
+          //Searching old photo
+          const old_photo_name = fields.old_photo_url.split('/')[5];
+          let old_photo_fileId = '';
+
+          imagekit.listFiles({
+            searchQuery : `'name'="${old_photo_name}"`
+          }, function(error, result) {
+            if(error){
+              return res.status(400).json({
+                success: false,
+                message: error.message,
+              });
+            } 
+            if(result && result.length > 0) {
+              old_photo_fileId = result[0].fileId
+
+              //Deleting old photo
+              imagekit.deleteFile(old_photo_fileId, function(error, result) {
+                if(error){
+                  return res.status(400).json({
+                    success: false,
+                    message: error.message,
+                  });
+                }
+              });
+            }
           });
         }
 
-        if (ext != "png" && ext != "jpg" && ext != "jpeg") {
-          return res.status(400).json({
-            success: false,
-            message: "Only JPG, JPEG or PNG photo is allowed",
-          });
-        }
-        var oldPath = files.photo.filepath;
-        var fileName = Date.now() + "_" + files.photo.originalFilename;
-        var newPath = "public/images" + "/" + fileName;
-        var rawData = fs.readFileSync(oldPath);
+        if (
+          fields.old_photo_url != fields.photo_name && fields.photo_name != ""
+        ) {
+          const ext = files.photo.mimetype.split("/")[1].trim();
 
-        fs.writeFile(newPath, rawData, function (err) {
-          if (err) {
-            return res
-              .status(500)
-              .json({ success: false, message: err.message });
+          if (files.photo.size >= 2000000) {
+            // 2000000(bytes) = 2MB
+            return res.status(400).json({
+              success: false,
+              message: "Photo size should be less than 2MB",
+            });
           }
-          photo = fileName.trim();
-        });
+          if (ext != "png" && ext != "jpg" && ext != "jpeg") {
+            return res.status(400).json({
+              success: false,
+              message: "Only JPG, JPEG or PNG photo is allowed",
+            });
+          }
 
-      }
+          var oldPath = files.photo.filepath;
+          var fileName = Date.now() + "_" + files.photo.originalFilename;
+          fs.readFile( oldPath, function (err, data) {
+            if (err) {
+              return res
+                .status(500)
+                .json({ success: false, message: err.message });
+            }
+            imagekit.upload({
+              file : data,
+              fileName : fileName, 
+              overwriteFile: true,
+              folder: '/staff_profiles'
+            }, function(error, result) {
+              if(error) {
+                return res
+                  .status(500)
+                  .json({ success: false, message: error.message });
+              }
+              photo = result.url
+              resolve();
+            });
+          });
+        }
+        else{
+          resolve()
+        }
+      })
 
-      const {
-        full_name,
-        email,
-        whatsapp_no,
-        alternate_no,
-        dob,
-        gender,
-        role,
-        address,
-        joining_date,
-      } = fields;
-
-      const faculty_id = req.params.id
-      const staff_details = await staffs.findByIdAndUpdate(
-        faculty_id,
-        {
+      myPromise.then(async () => {
+        const {
+          full_name,
+          email,
+          whatsapp_no,
+          alternate_no,
+          dob,
+          gender,
+          role,
+          address,
           joining_date,
-          role
-        })
+        } = fields;
 
-      if (
-        (fields.photo_name == "" && photo != "") ||
-        (fields.photo_name == "user_default@123.png" && photo == "")
-      ) {
+        const faculty_id = req.params.id
+        const staff_details = await staffs.findByIdAndUpdate(
+          faculty_id,
+          {
+            joining_date,
+            role
+          })
+
         const basic_info_id = await BasicInfo.findByIdAndUpdate(staff_details.basic_info_id, {
           photo,
           full_name,
           gender,
           dob
         })
-      } else {
-        const basic_info_id = await BasicInfo.findByIdAndUpdate(staff_details.basic_info_id, {
-          full_name,
-          gender,
-          dob
+
+        const contact_info_id = await ContactInfo.findByIdAndUpdate(staff_details.contact_info_id, {
+          whatsapp_no,
+          alternate_no,
+          address,
+          email
         })
 
-      }
+        res.status(200).json({
+          success: true,
+          message: "Profile Updated successfully",
 
-      const contact_info_id = await ContactInfo.findByIdAndUpdate(staff_details.contact_info_id, {
-        whatsapp_no,
-        alternate_no,
-        address,
-        email
+        })
       })
-
-      res.status(200).json({
-        success: true,
-        message: "Profile Updated successfully",
-
-      })
-
-
     })
   }
   catch (error) {

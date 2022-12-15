@@ -375,7 +375,6 @@ exports.exportStudentInClass = async (req, res, next) => {
     const desktopDir = `${homeDir}/Downloads`;
 
     const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}.xlsx`)
-    console.log(desktopDir);
   
 
     return res.status(200).json({
@@ -441,9 +440,7 @@ exports.exportPendingStudentInClass = async (req, res, next) => {
     const homeDir = require('os').homedir(); // See: https://www.npmjs.com/package/os
     const desktopDir = `${homeDir}/Downloads`;
 
-    const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}_Pending_Fee.xlsx`)
-    console.log(desktopDir);
-  
+    const data = await workbook.xlsx.writeFile(`${desktopDir}/Class_${className}_Pending_Fee.xlsx`)  
 
     return res.status(200).json({
       success: true,

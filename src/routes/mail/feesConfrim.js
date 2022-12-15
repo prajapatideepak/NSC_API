@@ -12,7 +12,6 @@ const Email = (options) => {
   });
   transpoter.sendMail(options, (err, info) => {
     if (err) {
-      console.log(err);
       return;
     }
   });
